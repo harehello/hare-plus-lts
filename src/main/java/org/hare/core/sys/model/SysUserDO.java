@@ -1,0 +1,72 @@
+package org.hare.core.sys.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.hare.framework.jpa.BaseEntity;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
+import javax.persistence.*;
+import java.util.Set;
+
+/**
+ * 用户
+ * @author wang cheng
+ */
+
+@Getter
+@Setter
+@DynamicInsert
+@DynamicUpdate
+@Entity
+@Table(name = "sys_user")
+public class SysUserDO extends BaseEntity {
+
+    private static final long serialVersionUID = 1246825374847350472L;
+    /**
+     * 用户名
+     */
+    @Column(length = 20, unique = true)
+    private String username;
+    /**
+     * 密码
+     */
+    @JsonIgnore
+    @Column(length = 100)
+    private String password;
+    /**
+     * 昵称
+     */
+    @Column(length = 20)
+    private String nickname;
+
+    /**
+     * 状态：正常、限制、删除
+     */
+    @Column(length = 10)
+    private String status;
+
+    /**
+     * 用户类型：企业员工
+     * 目前仅有一个类型
+     */
+    @Column(length = 10)
+    private String type;
+
+    /**
+     * 用户角色关系
+     */
+    @JsonIgnore
+    @ManyToMany
+    @JoinTable(name = "sys_user_role",
+            joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")})
+    private Set<SysRoleDO> roles;
+    /**
+     * 角色名称快照 英文逗号分隔
+     */
+    @Column(length = 150)
+    private String role;
+}

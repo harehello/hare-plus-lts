@@ -1,0 +1,110 @@
+package org.hare.core.sys.controller;
+
+import com.hare.jpa.HareSpecification;
+import lombok.RequiredArgsConstructor;
+import org.hare.common.component.BaseController;
+import org.hare.common.domain.QueryRequest;
+import org.hare.core.sys.model.SysDeptDO;
+import org.hare.core.sys.service.SysDeptService;
+import org.hare.framework.web.domain.R;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * 部门控制
+ * @author wang cheng
+ */
+@RequiredArgsConstructor
+@RestController
+@Controller
+@RequestMapping("/api/v1/sys/dept")
+public class SysDeptController extends BaseController {
+    private final SysDeptService service;
+
+    /**
+     * 添加
+     * @param form
+     * @return
+     */
+    @PostMapping
+    public R create(@Validated @RequestBody SysDeptDO form) {
+        service.save(form);
+        return R.success();
+    }
+
+    /**
+     * 修改
+     * @param form
+     * @return
+     */
+    @PutMapping
+    public R update(@Validated @RequestBody SysDeptDO form) {
+        service.save(form);
+        return R.success();
+    }
+
+    /**
+     * 删除
+     * @param id
+     * @return
+     */
+    @DeleteMapping("/{id}")
+    public R delete(@PathVariable Long id) {
+        service.deleteById(id);
+        return R.success();
+    }
+
+    /**
+     * 批量删除
+     * @param ids
+     * @return
+     */
+    @DeleteMapping
+    public R delete(@RequestBody Long[] ids) {
+        service.deleteAllById(Arrays.asList(ids));
+        return R.success();
+    }
+
+    /**
+     * 分页列表
+     * @param query
+     * @return
+     */
+    @GetMapping("/page")
+    public R page(QueryRequest query) {
+        Specification<SysDeptDO> specification = new HareSpecification<SysDeptDO>().asc("seq");
+        Page<SysDeptDO> page = service.findAll(specification, query.getPageable());
+        return R.success(page);
+    }
+
+    /**
+     * 详情
+     * @return
+     */
+    @GetMapping("/{id}")
+    public R info(@PathVariable Long id) {
+        SysDeptDO entity = service.findById(id);
+        return R.success(entity);
+    }
+
+    /**
+     * 树形结构
+     * @param name
+     * @return
+     */
+    @GetMapping("/tree")
+    public R list(@RequestParam(required = false) String name) {
+        Specification<SysDeptDO> specification = new HareSpecification<SysDeptDO>()
+                .like(StringUtils.hasText(name), "name", name)
+                .asc("seq");
+        List<SysDeptDO> list = service.findAll(specification);
+        return R.success(service.bulidTree(list));
+    }
+}
