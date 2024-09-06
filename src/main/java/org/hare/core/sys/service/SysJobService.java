@@ -21,7 +21,7 @@ public interface SysJobService extends BaseService<SysJobDO, Long> {
 
         return new HareSpecification<SysJobDO> ()
                 .like(StringUtils.hasText(query.getName()), "name", query.getName())
-                .like(StringUtils.hasText(query.getStatus()), "status", query.getStatus())
+                .eq(StringUtils.hasText(query.getStatus()), "status", query.getStatus())
                 .asc("seq");
     }
 }
