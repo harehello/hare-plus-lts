@@ -1,69 +1,53 @@
 package org.hare.core.sys.vo;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hare.core.sys.model.SysUserDO;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author wang cheng
  */
 @Getter
 @Setter
+@ToString
 public class SysUserVO {
 
     private Long id;
-    private Long employeeId;
-    private String code;
-    private String fullName;
-    private String sex;
-    private Integer age;
-    private String phone;
-    private Long deptId;
-    private String deptName;
-    private Long postId;
-    private String postName;
-    private String postType;
-    private String postHazard;
-    private Integer postTouchDuration;
-    private String postOperatingType;
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date entryDate;
-    private List<Long> roleIds;
+    /**
+     * 用户名
+     */
+    private String username;
+    /**
+     * 昵称
+     */
+    private String nickname;
+
+    /**
+     * 状态：正常、限制、删除
+     */
+    private String status;
+
+    /**
+     * 角色名称快照 英文逗号分隔
+     */
     private String role;
-    private String healthFile;
 
-    public SysUserVO(SysUserDO userDO) {
-        this.id = userDO.getId();
-        this.role = userDO.getRole();
+    /**
+     * 用户主体：企业员工
+     * 目前仅有一个类型
+     */
+    private String subject;
 
-//        SysEmployeeDO employee = userDO.getEmployee();
-//        if (Objects.nonNull(employee)) {
-//            this.employeeId = employee.getId();
-//            this.code = employee.getCode();
-//            this.fullName = employee.getFullName();
-//            this.sex = employee.getSex();
-//            this.age = employee.getAge();
-//            this.phone = employee.getPhone();
-//            this.entryDate = employee.getEntryDate();
-//            this.healthFile = employee.getHealthFile();
-//
-//            SysDeptDO dept = employee.getDept();
-//            if (Objects.nonNull(dept)) {
-//                this.deptId = dept.getId();
-//                this.deptName = dept.getName();
-//            }
-//
-//            SysPostDO post = employee.getPost();
-//            if (Objects.nonNull(post)) {
-//                this.postId = post.getId();
-//                this.postName = post.getName();
-//                this.postType = post.getType();
-//                this.postOperatingType = post.getOperatingType();
-//            }
-//        }
+    public static SysUserVO convert(SysUserDO entity) {
+        SysUserVO sysUserVO = new SysUserVO();
+        sysUserVO.setId(entity.getId());
+        sysUserVO.setUsername(entity.getUsername());
+        sysUserVO.setNickname(entity.getNickname());
+        sysUserVO.setStatus(entity.getStatus());
+        sysUserVO.setRole(entity.getRole());
+        sysUserVO.setSubject(entity.getSubject());
+        return sysUserVO;
+
     }
 }

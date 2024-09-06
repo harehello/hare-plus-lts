@@ -4,20 +4,24 @@ import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.component.BaseController;
 import org.hare.core.sys.constant.SysConstants;
-import org.hare.core.sys.dto.*;
-import org.hare.core.sys.model.*;
+import org.hare.core.sys.dto.LoginUserResponse;
+import org.hare.core.sys.dto.SysUserDTO;
+import org.hare.core.sys.dto.SysUserPasswordBodyDTO;
+import org.hare.core.sys.dto.SysUserQueryDTO;
+import org.hare.core.sys.model.SysMenuDO;
+import org.hare.core.sys.model.SysUserDO;
 import org.hare.core.sys.service.*;
 import org.hare.core.sys.vo.SysUserVO;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -85,11 +89,7 @@ public class SysUserController extends BaseController {
      */
     private Specification buildSpecification(SysUserQueryDTO query) {
         return new HareSpecification<SysUserDO>()
-                .ne("id", SysConstants.USER_SYSTEM_ID)
-                .ne("roleIds", SysConstants.ROLE_ADMIN)
-                .eq(Objects.nonNull(query.getPostId()), "employee.post", query.getPostId())
-                .like(StringUtils.hasText(query.getFullName()), "employee.fullName", query.getFullName())
-                .likeRight(StringUtils.hasText(query.getDept()), "employee.dept.parentIds", query.getDept());
+                .ne("id", SysConstants.USER_SYSTEM_ID);
     }
 
     /**
@@ -100,7 +100,7 @@ public class SysUserController extends BaseController {
     @GetMapping("/page")
     public R page(SysUserQueryDTO query) {
         Page<SysUserDO> page = service.findAll(buildSpecification(query), query.getPageable());
-        Page<SysUserVO> voPage = page.map(SysUserVO::new);
+        Page<SysUserVO> voPage = page.map(SysUserVO::convert);
         return R.success(voPage);
     }
 
@@ -112,7 +112,7 @@ public class SysUserController extends BaseController {
     @GetMapping("/list")
     public R list(SysUserQueryDTO query) {
         List<SysUserDO> list = service.findAll(buildSpecification(query));
-        List<SysUserVO> vos = list.stream().map(SysUserVO::new).collect(Collectors.toList());
+        List<SysUserVO> vos = list.stream().map(SysUserVO::convert).collect(Collectors.toList());
         return R.success(vos);
     }
 

@@ -5,19 +5,22 @@ import lombok.RequiredArgsConstructor;
 import org.hare.common.constant.Constants;
 import org.hare.core.sys.constant.SysConstants;
 import org.hare.core.sys.dto.SysUserDTO;
-import org.hare.core.sys.model.*;
-import org.hare.core.sys.service.SysEmployeeService;
+import org.hare.core.sys.model.SysRoleDO;
+import org.hare.core.sys.model.SysUserDO;
 import org.hare.core.sys.service.SysRoleService;
 import org.hare.core.sys.service.SysUserService;
 import org.hare.framework.exception.BaseException;
 import org.hare.framework.jpa.BaseServiceImpl;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author wang cheng
@@ -203,19 +206,14 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
     private void setRoles(SysUserDO userDO, List<Long> roleIds) {
         if (!roleIds.isEmpty()) {
             // 获取角色信息
-            List<SysRoleDO> roleDOS = roleService.findAllById(roleIds);
+            List<SysRoleDO> roles = roleService.findAllById(roleIds);
             // 角色名称
-            Set<String> role = new LinkedHashSet<>();
-            Set<Long> roleIds2 = new LinkedHashSet<>();
-            roleDOS.forEach(r -> {
-                role.add(r.getName());
-                roleIds2.add(r.getId());
-            });
-            userDO.setRoles(new LinkedHashSet<>(roleDOS));
-//            userDO.setRole(StringUtils.join(role, Constants.CSV));
-//            userDO.setRoleIds(StringUtils.join(roleIds2, Constants.CSV));
+            String role = roles.stream().map(SysRoleDO::getName).collect(Collectors.joining(Constants.CSV));
+            userDO.setRoles(new LinkedHashSet<>(roles));
+            userDO.setRole(role);
         } else {
             userDO.setRoles(new HashSet<>());
+            userDO.setRole(null);
         }
     }
 
