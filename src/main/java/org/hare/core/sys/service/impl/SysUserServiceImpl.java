@@ -40,6 +40,40 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
     }
 
     /**
+     *
+     * @param username 要检查的用户名
+     * @return 如果用户名唯一返回true，否则返回false
+     */
+    @Override
+    public boolean isUsernameUnique(String username) {
+        return isUsernameUnique(username, null);
+    }
+
+    @Override
+    public boolean isUsernameUnique(String username, Long userId) {
+
+        final long count = count(new HareSpecification<SysUserDO>()
+                .eq("username", username)
+                .ne(Objects.nonNull(userId), "id", userId));
+
+        return count > 0;
+    }
+
+    @Override
+    public void assertUsernameUnique(String username) {
+        if (isUsernameUnique(username)) {
+            throw new BaseException(SysConstants.USER_UNIQUE_ERROR_MSG);
+        }
+    }
+
+    @Override
+    public void assertUsernameUnique(String username, Long userId) {
+        if (isUsernameUnique(username, userId)) {
+            throw new BaseException(SysConstants.USER_UNIQUE_ERROR_MSG);
+        }
+    }
+
+    /**
      * 根据ID查询
      * @param id
      * @return
@@ -59,18 +93,17 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
     public SysUserDO create(SysUserDTO userDTO) {
         // 设置用户信息
         SysUserDO target = SysUserDTO.convert(userDTO);
+
+        // 断言用户唯一
+        assertUsernameUnique(target.getUsername());
+
         target.setPassword(encodePassword(getDefaultPassword()));
         target.setStatus(Constants.NORMAL);
 
         // 赋值角色
         setRoles(target, userDTO.getRoleIds());
         // 保存用户（同时保存角色信息）并返回
-        try {
-            super.save(target);
-        } catch (DataIntegrityViolationException e) {
-            throw new BaseException("账号已存在");
-        }
-        return target;
+        return super.save(target);
     }
 
     /**
@@ -98,21 +131,19 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
     public SysUserDO update(SysUserDTO userDTO) {
         Long userId = userDTO.getId();
         Assert.notNull(userId, "user id cannot be null");
-        userCannotUpdate(userId);
+
+        assertUserAlter(userId);
+        assertUsernameUnique(userDTO.getUsername(), userId);
 
         SysUserDO userDO = findById(userId);
 
         userDO.setUsername(userDTO.getUsername());
-        userDO.setNickname(userDTO.getUsername());
+        userDO.setNickname(userDTO.getNickname());
         userDO.setStatus(userDTO.getStatus());
         // 赋值角色
         setRoles(userDO, userDTO.getRoleIds());
-        try {
-            super.save(userDO);
-        } catch (DataIntegrityViolationException e) {
-            throw new BaseException("账号已存在");
-        }
-        return userDO;
+
+        return super.save(userDO);
     }
 
     /**
@@ -142,7 +173,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
     @Override
     public void resetPassword(Long id) {
         Assert.notNull(id, "id cannot be null");
-        userCannotUpdate(id);
+        assertUserAlter(id);
         SysUserDO userDO = findById(id);
         userDO.setPassword(encodePassword(getDefaultPassword()));
         super.save(userDO);
@@ -195,7 +226,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteById(Long id) {
-        userCannotUpdate(id);
+        assertUserAlter(id);
         repository.deleteById(id);
     }
 
@@ -206,15 +237,15 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteAllById(Iterable<? extends Long> ids) {
-        ids.forEach(id -> userCannotUpdate(id));
+        ids.forEach(this::assertUserAlter);
         repository.deleteAllById(ids);
     }
 
     /**
-     * 用不信息不可被修改
+     * 断言用户更改
      * @param id
      */
-    private void userCannotUpdate(Long id) {
+    private void assertUserAlter(Long id) {
         if (Objects.equals(SysConstants.USER_SYSTEM_ID, id)) {
             throw new BaseException(SysConstants.USER_CANNOT_UPDATE_MSG);
         }
