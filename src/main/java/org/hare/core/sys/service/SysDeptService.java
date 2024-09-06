@@ -38,4 +38,14 @@ public interface SysDeptService extends BaseService<SysDeptDO, Long> {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         return tree;
     }
+
+    /**
+     * 获取快速识别码
+     * @param id 部门ID
+     * @return
+     */
+    default String getFastId(Long id) {
+        final SysDeptDO deptDO = findById(id);
+        return Objects.isNull(deptDO) ? null : deptDO.getFastId()+ "-";
+    }
 }
