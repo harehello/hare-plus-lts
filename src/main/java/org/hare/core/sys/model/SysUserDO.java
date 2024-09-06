@@ -49,13 +49,6 @@ public class SysUserDO extends BaseEntity {
     private String status;
 
     /**
-     * 用户类型：企业员工
-     * 目前仅有一个类型
-     */
-    @Column(length = 10)
-    private String type;
-
-    /**
      * 用户角色关系
      */
     @JsonIgnore
@@ -69,4 +62,16 @@ public class SysUserDO extends BaseEntity {
      */
     @Column(length = 150)
     private String role;
+
+    /**
+     * 用户主体：企业员工
+     * 目前仅有一个类型
+     */
+    @Column(length = 10)
+    private String subject;
+
+    /**
+     * 主体ID
+     */
+    private Long subjectId;
 }

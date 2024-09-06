@@ -36,21 +36,26 @@ public class SysUserDTO implements Serializable {
     private String status;
 
     /**
-     * 用户类型：企业员工
-     * 目前仅有一个类型
-     */
-    private String type;
-
-    /**
      * 角色集合
      */
     private List<Long> roleIds;
+
+    /**
+     * 用户主体：企业员工
+     * 目前仅有一个类型
+     */
+    private String subject;
+    /**
+     * 主体ID
+     */
+    private Long subjectId;
 
     public static SysUserDO convert(SysUserDTO dto) {
         SysUserDO sysUserDO = new SysUserDO();
         sysUserDO.setUsername(dto.getUsername());
         sysUserDO.setNickname(dto.getNickname());
-        sysUserDO.setType(dto.getType());
+        sysUserDO.setSubject(dto.getSubject());
+        sysUserDO.setSubjectId(dto.getSubjectId());
         return sysUserDO;
     }
 }
