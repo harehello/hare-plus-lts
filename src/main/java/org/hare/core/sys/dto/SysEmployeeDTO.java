@@ -3,7 +3,7 @@ package org.hare.core.sys.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
-import org.hare.core.sys.constant.UserTypeEmun;
+import org.hare.core.sys.constant.UserSubjectEmun;
 import org.hare.core.sys.model.*;
 
 import javax.validation.constraints.NotBlank;
@@ -12,8 +12,6 @@ import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 员工请求体
@@ -32,7 +30,7 @@ public class SysEmployeeDTO {
      */
     @NotNull(message = "部门不能为空")
     private Long deptId;
-    private String dept;
+    private String deptName;
     /**
      * 姓名
      */
@@ -70,7 +68,8 @@ public class SysEmployeeDTO {
      */
     @NotNull(message = "岗位不能为空")
     private Long jobId;
-    private String job;
+
+    private String jobName;
     /**
      * 入职日期
      */
@@ -99,7 +98,7 @@ public class SysEmployeeDTO {
         final SysDeptDO deptDO = employee.getDept();
         if (Objects.nonNull(deptDO)) {
             this.deptId = deptDO.getId();
-            this.dept = deptDO.getName();
+            this.deptName = deptDO.getName();
         }
         this.name = employee.getName();
         this.code = employee.getCode();
@@ -110,7 +109,7 @@ public class SysEmployeeDTO {
         final SysJobDO job = employee.getJob();
         if (Objects.nonNull(job)) {
             this.jobId = job.getId();
-            this.job = job.getName();
+            this.jobName = job.getName();
         }
         this.entryDate = employee.getEntryDate();
 
@@ -136,7 +135,9 @@ public class SysEmployeeDTO {
         SysUserDTO sysUserDTO = new SysUserDTO();
         sysUserDTO.setUsername(dto.getPhone());
         sysUserDTO.setNickname(dto.getName());
-        sysUserDTO.setType(UserTypeEmun.employee.name());
+        sysUserDTO.setSubject(UserSubjectEmun.employee.name());
+        sysUserDTO.setSubjectId(dto.getId());
+        sysUserDTO.setStatus(dto.getStatus());
         sysUserDTO.setRoleIds(dto.getRoleIds());
         return sysUserDTO;
     }

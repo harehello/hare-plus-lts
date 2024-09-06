@@ -1,15 +1,13 @@
 package org.hare.core.sys.controller;
 
-import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.component.BaseController;
-import org.hare.common.domain.QueryRequest;
 import org.hare.core.sys.dto.SysEmployeeDTO;
+import org.hare.core.sys.dto.SysEmployeeQuery;
 import org.hare.core.sys.model.SysEmployeeDO;
 import org.hare.core.sys.service.SysEmployeeService;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +43,7 @@ public class SysEmployeeController extends BaseController {
      */
     @PutMapping
     public R update(@Validated @RequestBody SysEmployeeDTO form) {
-        service.save(form);
+        service.update(form);
         return R.success();
     }
 
@@ -77,9 +75,8 @@ public class SysEmployeeController extends BaseController {
      * @return
      */
     @GetMapping("/page")
-    public R page(QueryRequest query) {
-        Specification<SysEmployeeDO> specification = new HareSpecification<SysEmployeeDO>().asc("id");
-        Page<SysEmployeeDO> page = service.findAll(specification, query.getPageable());
+    public R page(SysEmployeeQuery query) {
+        Page<SysEmployeeDO> page = service.findAll(service.specification(query), query.getPageable());
         return R.success(page);
     }
 

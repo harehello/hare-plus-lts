@@ -20,8 +20,7 @@ import java.util.Date;
 @DynamicUpdate
 @Entity
 @Table(name="sys_employee", indexes = {
-        @Index(columnList = "name"),
-        @Index(columnList = "userId")
+        @Index(columnList = "name")
 }
 )
 public class SysEmployeeDO extends BaseEntity {
@@ -74,10 +73,5 @@ public class SysEmployeeDO extends BaseEntity {
      * 备注
      */
     private String remark;
-
-    /**
-     * 用户ID
-     */
-    private Long userId;
 
 }

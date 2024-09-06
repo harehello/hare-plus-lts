@@ -11,6 +11,7 @@ import org.hare.core.sys.service.SysUserService;
 import org.hare.framework.jpa.BaseServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.util.List;
 import java.util.Objects;
@@ -43,15 +44,66 @@ public class SysEmployeeServiceImpl extends BaseServiceImpl<SysEmployeeDO, Long>
         final SysDeptDO deptDO = deptService.findById(deptId);
         target.setDept(deptDO);
 
-        final Long postId = request.getJobId();
-        final SysJobDO jobDO = postService.findById(postId);
+        final Long jobId = request.getJobId();
+        final SysJobDO jobDO = postService.findById(jobId);
         target.setJob(jobDO);
         // 保存员工信息
         super.save(target);
 
         // 自动创建用户
+        request.setId(target.getId());
         final SysUserDTO userDTO = SysEmployeeDTO.convertToUser(request);
         userService.create(userDTO);
+
+        return target;
+    }
+
+    /**
+     * 修改员工，自动修改用户
+     * @param request
+     * @return
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public SysEmployeeDO update(SysEmployeeDTO request) {
+        Long id = request.getId();
+        Assert.notNull(id, "employee id cannot be null");
+
+        final SysEmployeeDO target = findById(id);
+        // 原手机号
+        final String rawPhone = target.getPhone();
+        // 允许被修改的字段
+        target.setName(request.getName());
+        target.setCode(request.getCode());
+        target.setSex(request.getSex());
+        target.setBirthday(request.getBirthday());
+        target.setPhone(request.getPhone());
+        target.setEntryDate(request.getEntryDate());
+        target.setStatus(request.getStatus());
+        target.setRemark(request.getRemark());
+
+        final Long deptId = request.getDeptId();
+        final SysDeptDO deptDO = deptService.findById(deptId);
+        target.setDept(deptDO);
+
+        final Long jobId = request.getJobId();
+        final SysJobDO jobDO = postService.findById(jobId);
+        target.setJob(jobDO);
+
+        // 保存员工信息
+        super.save(target);
+
+        // 修改用户
+        final SysUserDTO userDTO = SysEmployeeDTO.convertToUser(request);
+
+        // 有账号就修改账号 没有账号 就创建一个账号
+        final SysUserDO userDO = userService.findByUsername(rawPhone);
+        if (Objects.nonNull(userDO)) {
+            userDTO.setId(userDO.getId());
+            userService.update(userDTO);
+        } else {
+            userService.create(userDTO);
+        }
 
         return target;
     }
@@ -61,7 +113,7 @@ public class SysEmployeeServiceImpl extends BaseServiceImpl<SysEmployeeDO, Long>
     public SysEmployeeDTO findDtoById(Long id) {
         final SysEmployeeDO employeeDO = findById(id);
         final SysEmployeeDTO target = new SysEmployeeDTO(employeeDO);
-        final SysUserDO user = userService.findById(employeeDO.getUserId());
+        final SysUserDO user = userService.findByUsername(employeeDO.getPhone());
         final Set<SysRoleDO> roles = user.getRoles();
         if (Objects.nonNull(roles)) {
             final List<Long> roleIds = roles.stream().map(SysRoleDO::getId).collect(Collectors.toList());
