@@ -4,7 +4,7 @@ package org.hare.core.sys.constant;
  * 用户类型
  * @author wang cheng
  */
-public enum UserTypeEmun {
+public enum UserSubjectEmun {
     /**
      * 公司员工
      */
