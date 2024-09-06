@@ -28,6 +28,7 @@ public final class SysConstants {
      */
     public static final String USER_CANNOT_UPDATE_MSG = "用户信息不可被修改";
     public static final String USER_RAW_PASSWORD_ERROR_MSG = "原密码不正确";
+    public static final String USER_UNIQUE_ERROR_MSG = "用户已存在";
     /**
      * 登录错误消息
      */
