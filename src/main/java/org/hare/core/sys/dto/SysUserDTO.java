@@ -36,6 +36,11 @@ public class SysUserDTO implements Serializable {
     private String status;
 
     /**
+     * 角色名称快照 英文逗号分隔
+     */
+    private String role;
+
+    /**
      * 角色集合
      */
     private List<Long> roleIds;
@@ -57,5 +62,17 @@ public class SysUserDTO implements Serializable {
         sysUserDO.setSubject(dto.getSubject());
         sysUserDO.setSubjectId(dto.getSubjectId());
         return sysUserDO;
+    }
+
+    public static SysUserDTO convert(SysUserDO entity) {
+        SysUserDTO sysUserDTO = new SysUserDTO();
+        sysUserDTO.setId(entity.getId());
+        sysUserDTO.setUsername(entity.getUsername());
+        sysUserDTO.setNickname(entity.getNickname());
+        sysUserDTO.setStatus(entity.getStatus());
+        sysUserDTO.setSubject(entity.getSubject());
+        sysUserDTO.setRole(entity.getRole());
+        sysUserDTO.setSubjectId(entity.getSubjectId());
+        return sysUserDTO;
     }
 }
