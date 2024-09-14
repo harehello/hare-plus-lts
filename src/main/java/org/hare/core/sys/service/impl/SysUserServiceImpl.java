@@ -3,6 +3,7 @@ package org.hare.core.sys.service.impl;
 import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.constant.Constants;
+import org.hare.common.constant.StutesEmun;
 import org.hare.core.sys.constant.SysConstants;
 import org.hare.core.sys.dto.SysUserDTO;
 import org.hare.core.sys.model.SysRoleDO;
@@ -11,15 +12,16 @@ import org.hare.core.sys.service.SysRoleService;
 import org.hare.core.sys.service.SysUserService;
 import org.hare.framework.exception.BaseException;
 import org.hare.framework.jpa.BaseServiceImpl;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -31,6 +33,43 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
 
     private final SysRoleService roleService;
     private final PasswordEncoder passwordEncoder;
+
+    /**
+     * 查询用户列表转换为DTO
+     * @param specification 条件
+     * @return 分页数据
+     */
+    @Override
+    public Page<SysUserDTO> findPage(Specification<SysUserDO> specification, Pageable pageable) {
+
+        final Page<SysUserDO> all = findAll(specification, pageable);
+
+        return all.map(SysUserDTO::convert);
+    }
+
+    @Override
+    public List<SysUserDTO> findList(Specification<SysUserDO> specification) {
+        final List<SysUserDO> all = findAll(specification);
+
+        return all.stream().map(SysUserDTO::convert).collect(Collectors.toList());
+    }
+
+    /**
+     * 查询用户转换为DTO
+     * @param id 用户数据
+     * @return SysUserDTO数据对象
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public SysUserDTO getById(Long id) {
+        final SysUserDO target = findById(id);
+        final SysUserDTO dto = SysUserDTO.convert(target);
+        final Set<SysRoleDO> roles = target.getRoles();
+        if (!CollectionUtils.isEmpty(roles)) {
+            dto.setRoleIds(roles.stream().map(SysRoleDO::getId).collect(Collectors.toList()));
+        }
+        return dto;
+    }
 
     /**
      * 根据用户名查询
@@ -101,7 +140,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
         assertUsernameUnique(target.getUsername());
 
         target.setPassword(encodePassword(getDefaultPassword()));
-        target.setStatus(Constants.NORMAL);
+        target.setStatus(StutesEmun.active.name());
 
         // 赋值角色
         setRoles(target, userDTO.getRoleIds());
