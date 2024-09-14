@@ -1,13 +1,14 @@
 package org.hare.core.sys.service.impl;
 
+import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
+import org.hare.common.constant.StutesEmun;
+import org.hare.common.domain.LabelValueVO;
+import org.hare.core.sys.constant.UserSubjectEmun;
 import org.hare.core.sys.dto.SysEmployeeDTO;
 import org.hare.core.sys.dto.SysUserDTO;
 import org.hare.core.sys.model.*;
-import org.hare.core.sys.service.SysDeptService;
-import org.hare.core.sys.service.SysEmployeeService;
-import org.hare.core.sys.service.SysJobService;
-import org.hare.core.sys.service.SysUserService;
+import org.hare.core.sys.service.*;
 import org.hare.framework.jpa.BaseServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  */
 @RequiredArgsConstructor
 @Service
-public class SysEmployeeServiceImpl extends BaseServiceImpl<SysEmployeeDO, Long> implements SysEmployeeService {
+public class SysEmployeeServiceImpl extends BaseServiceImpl<SysEmployeeDO, Long> implements SysEmployeeService, SysUserSubjectStrategy {
 
     private final SysDeptService deptService;
     private final SysJobService postService;
@@ -122,5 +123,24 @@ public class SysEmployeeServiceImpl extends BaseServiceImpl<SysEmployeeDO, Long>
             target.setRoles(roleNames);
         }
         return target;
+    }
+
+    @Override
+    public String code() {
+        return UserSubjectEmun.employee.name();
+    }
+
+    @Override
+    public String name() {
+        return UserSubjectEmun.employee.getLabel();
+    }
+
+    @Override
+    public List<LabelValueVO> option() {
+        return findAll(new HareSpecification<SysEmployeeDO>()
+                .eq("status", StutesEmun.active.name()))
+                .stream()
+                .map(e -> new LabelValueVO(e.getName(), e.getId().toString()))
+                .collect(Collectors.toList());
     }
 }

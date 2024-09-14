@@ -1,9 +1,7 @@
 package org.hare.core.sys.controller;
 
-import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.component.BaseController;
-import org.hare.core.sys.constant.SysConstants;
 import org.hare.core.sys.dto.LoginUserResponse;
 import org.hare.core.sys.dto.SysUserDTO;
 import org.hare.core.sys.dto.SysUserPasswordBodyDTO;
@@ -11,18 +9,13 @@ import org.hare.core.sys.dto.SysUserQueryDTO;
 import org.hare.core.sys.model.SysMenuDO;
 import org.hare.core.sys.model.SysUserDO;
 import org.hare.core.sys.service.*;
-import org.hare.core.sys.vo.SysUserVO;
 import org.hare.framework.web.domain.R;
-import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 用户
@@ -34,9 +27,7 @@ import java.util.stream.Collectors;
 public class SysUserController extends BaseController {
     private final SysUserService service;
     private final SysMenuService menuService;
-    private final SysJobService postService;
-    private final SysRoleService roleService;
-    private final SysDeptService deptService;
+    private final SysUserSubjectService userSubjectService;
 
     /**
      * 添加
@@ -83,25 +74,14 @@ public class SysUserController extends BaseController {
     }
 
     /**
-     * 构建查询条件
-     * @param query
-     * @return
-     */
-    private Specification buildSpecification(SysUserQueryDTO query) {
-        return new HareSpecification<SysUserDO>()
-                .ne("id", SysConstants.USER_SYSTEM_ID);
-    }
-
-    /**
      * 分页列表
      * @param query
      * @return
      */
     @GetMapping("/page")
     public R page(SysUserQueryDTO query) {
-        Page<SysUserDO> page = service.findAll(buildSpecification(query), query.getPageable());
-        Page<SysUserVO> voPage = page.map(SysUserVO::convert);
-        return R.success(voPage);
+        return R.success(service.findPage(service.specification(query), query.getPageable()));
+
     }
 
     /**
@@ -111,9 +91,7 @@ public class SysUserController extends BaseController {
      */
     @GetMapping("/list")
     public R list(SysUserQueryDTO query) {
-        List<SysUserDO> list = service.findAll(buildSpecification(query));
-        List<SysUserVO> vos = list.stream().map(SysUserVO::convert).collect(Collectors.toList());
-        return R.success(vos);
+        return R.success(service.findList(service.specification(query)));
     }
 
     /**
@@ -148,6 +126,15 @@ public class SysUserController extends BaseController {
     }
 
     /**
+     * 根据用户ID获取用户信息
+     * @return
+     */
+    @GetMapping(value = "/info/{id}")
+    public R getById(@PathVariable Long id) {
+        return R.success(service.getById(id));
+    }
+
+    /**
      * 用户菜单 树形结构
      * @return
      */
@@ -158,77 +145,18 @@ public class SysUserController extends BaseController {
     }
 
     /**
-     * 导入
-     * @param file
-     * @return
+     * 用户主体类型
      */
-    @PostMapping("/import")
-    @ResponseBody
-    public R importExcel(MultipartFile file) {
-        try {
-//            ExcelDataListener excelListener = new ExcelDataListener<SysUserImportDTO>();
-//            EasyExcel.read(file.getInputStream(), SysUserImportDTO.class, excelListener).sheet().doRead();
-//            List<SysUserImportDTO> dtos = excelListener.getList();
-//            // 部门
-//            final List<SysDeptDO> depts = deptService.findAll();
-//            // 岗位
-//            final List<SysPostDO> posts = postService.findAll();
-//            // 角色
-//            final List<SysRoleDO> roles = roleService.findAll();
-//
-//            List<SysUserBodyDTO> userBodys = new ArrayList<SysUserBodyDTO>();
-//            SysUserBodyDTO bodyDTO = null;
-//            for (SysUserImportDTO dto : dtos) {
-//                // 必要信息没有直接跳过
-//                if (!StringUtils.hasText(dto.getFullName())) {
-//                    continue;
-//                }
-//                if (!StringUtils.hasText(dto.getPhone())) {
-//                    continue;
-//                }
-//                String deptName = dto.getDeptName();
-//                if (!StringUtils.hasText(deptName)) {
-//                    continue;
-//                }
-//                Optional<SysDeptDO> deptFirst = depts.stream().filter(t -> t.getName().equals(deptName)).findFirst();
-//                if (!deptFirst.isPresent()) {
-//                    continue;
-//                }
-//
-//                Long deptId = deptFirst.get().getId();
-//
-//                bodyDTO = SysUserImportDTO.convertToBodyDTO(dto);
-//                bodyDTO.setDeptId(deptId);
-//
-//                String post = dto.getPost();
-//                if (StringUtils.hasText(post)) {
-//                    Optional<SysPostDO> postFirst = posts.stream().filter(t -> t.getName().equals(post)).findFirst();
-//                    if (postFirst.isPresent()) {
-//                        Long postId = postFirst.get().getId();
-//                        bodyDTO.setPostId(postId);
-//                    }
-//                }
-//
-//                String role = dto.getRole();
-//                if (StringUtils.hasText(role)) {
-//                    List<Long> roleIds = new ArrayList<>();
-//                    String[] roleArr = role.split(Constants.PUNCTUATION_COMMA);
-//                    for (String s : roleArr) {
-//                        Optional<SysRoleDO> roleFirst = roles.stream().filter(t -> t.getName().equals(s)).findFirst();
-//                        if (roleFirst.isPresent()) {
-//                            Long roleId = roleFirst.get().getId();
-//                            roleIds.add(roleId);
-//                        }
-//                    }
-//                    bodyDTO.setRoleIds(roleIds);
-//                }
-//                userBodys.add(bodyDTO);
-//            }
-//
-//            service.create(userBodys);
-        } catch (Exception e) {
-            return R.failed("导入失败");
-        }
-        return R.success();
+    @GetMapping("/subjectType")
+    public R subjectType(Authentication authentication) {
+        return R.success(userSubjectService.getType());
     }
+    /**
+     * 用户主体列表
+     */
+    @GetMapping("/subjectList/{type}")
+    public R subjectList(@PathVariable String type, Authentication authentication) {
+        return R.success(userSubjectService.getOption(type));
+    }
+
 }

@@ -8,5 +8,15 @@ public enum UserSubjectEmun {
     /**
      * 公司员工
      */
-    employee;
+    employee("企业员工");
+
+    private final String label;
+
+    UserSubjectEmun(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
+    }
 }
