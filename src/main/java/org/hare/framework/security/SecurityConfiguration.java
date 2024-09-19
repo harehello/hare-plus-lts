@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,6 +29,7 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
@@ -51,6 +53,8 @@ public class SecurityConfiguration {
      */
     @Value("${jwt.private.key}")
     private RSAPrivateKey privateKey;
+
+    private AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver;
 
     /**
      * exceptionHandling.authenticationEntryPoint 指定的认证异常处理只能处理抛出的相关异常，
@@ -76,6 +80,8 @@ public class SecurityConfiguration {
                                 .and()
                                 .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                                 .accessDeniedHandler(new AccessDeniedHandlerImpl())
+                                .and()
+                                .addFilterAfter(new BearerTokenAuthenticationAfterFilter(), BearerTokenAuthenticationFilter.class)
                         )
                 )
                 .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
