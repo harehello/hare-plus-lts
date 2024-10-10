@@ -10,6 +10,7 @@ import org.hare.core.sys.model.SysMenuDO;
 import org.hare.core.sys.model.SysUserDO;
 import org.hare.core.sys.service.*;
 import org.hare.framework.web.domain.R;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -78,6 +79,7 @@ public class SysUserController extends BaseController {
      * @param query
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:user:list1')")
     @GetMapping("/page")
     public R page(SysUserQueryDTO query) {
         return R.success(service.findPage(service.specification(query), query.getPageable()));

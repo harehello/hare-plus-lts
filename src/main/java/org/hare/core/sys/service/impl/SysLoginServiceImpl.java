@@ -1,9 +1,11 @@
 package org.hare.core.sys.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.constant.Constants;
 import org.hare.core.sys.constant.SysConstants;
 import org.hare.core.sys.dto.LoginRequest;
+import org.hare.core.sys.dto.LoginUserDTO;
 import org.hare.core.sys.model.SysUserDO;
 import org.hare.core.sys.service.SysLoginService;
 import org.hare.core.sys.service.SysUserService;
@@ -11,12 +13,12 @@ import org.hare.framework.exception.BaseException;
 import org.hare.framework.security.JwtBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * <p>
@@ -31,6 +33,7 @@ public class SysLoginServiceImpl implements SysLoginService {
     private final SysUserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtBuilder jwtBuilder;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
     public String token(LoginRequest request) {
@@ -50,7 +53,20 @@ public class SysLoginServiceImpl implements SysLoginService {
             logger.error(e.toString());
             throw new BaseException(SysConstants.LOGIN_ERROR_MSG);
         }
+        cacheLoginUser(LoginUserDTO.withSysUser(sysUser).build());
         return jwtBuilder.build(sysUser.getUsername(), Collections.singletonList(sysUser.getRole()));
+    }
+
+    @Override
+    public LoginUserDTO cacheLoginUser(LoginUserDTO dto) {
+        try {
+            final String value = new ObjectMapper().writeValueAsString(dto);
+            redisTemplate.opsForValue().set(SysConstants.LOGIN_USER_PREFIX + dto.getUsername(), value);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return dto;
     }
 
 }

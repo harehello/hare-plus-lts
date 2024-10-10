@@ -1,18 +1,12 @@
 package org.hare.core.sys.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.ToString;
-import org.hare.core.sys.model.SysRoleDO;
-import org.hare.core.sys.model.SysUserDO;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.Assert;
 
-import javax.persistence.Column;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import java.util.*;
 
 /**
@@ -28,46 +22,30 @@ public class LoginUserDTO2 {
     /**
      * 用户名
      */
-    @Column(length = 20, unique = true)
     private String username;
 
     /**
      * 昵称
      */
-    @Column(length = 20)
     private String nickname;
-
-    /**
-     * 用户角色关系
-     */
-    @JsonIgnore
-    @ManyToMany
-    @JoinTable(name = "sys_user_role",
-            joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
-            inverseJoinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")})
-    private Set<SysRoleDO> roles;
-    /**
-     * 角色名称快照 英文逗号分隔
-     */
-    @Column(length = 150)
-    private String role;
 
     /**
      * 用户主体：企业员工
      * 目前仅有一个类型
      */
-    @Column(length = 10)
     private String subject;
 
     /**
      * 主体ID
      */
     private Long subjectId;
+
+    /**
+     * 权限
+     */
     private Set<GrantedAuthority> authorities;
 
     private boolean accountNonLocked;
-
-
 
     public boolean equals(Object obj) {
         return obj instanceof LoginUserDTO2 && this.username.equals(((LoginUserDTO2) obj).username);
@@ -80,12 +58,151 @@ public class LoginUserDTO2 {
     public LoginUserDTO2() {
     }
 
-    public LoginUserDTO2(SysUserDO userDO, Set<? extends GrantedAuthority> authorities) {
-        this.user = userDO;
-        this.authorities = Collections.unmodifiableSet(authorities);
+    public LoginUserDTO2(Long userId, String username, String nickname, String subject, Long subjectId, Collection<? extends GrantedAuthority> authorities, boolean accountNonLocked) {
+        this.userId = userId;
+        this.username = username;
+        this.nickname = nickname;
+        this.subject = subject;
+        this.subjectId = subjectId;
+        this.accountNonLocked = accountNonLocked;
+        this.authorities = Collections.unmodifiableSet(new LinkedHashSet<>(authorities));
+    }
+
+    public LoginUserDTO2(Set<? extends GrantedAuthority> authorities) {
+        this.authorities =  Collections.unmodifiableSet(authorities);
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
+    }
+
+    public static final class LoginUserBuilder {
+
+        /**
+         * 用户ID
+         */
+        private Long userId;
+
+        /**
+         * 用户名
+         */
+        private String username;
+
+        /**
+         * 昵称
+         */
+        private String nickname;
+
+        /**
+         * 用户主体：企业员工
+         * 目前仅有一个类型
+         */
+        private String subject;
+
+        /**
+         * 主体ID
+         */
+        private Long subjectId;
+
+        private List<GrantedAuthority> authorities;
+
+        private boolean accountLocked;
+
+        /**
+         * Creates a new instance
+         */
+        private LoginUserBuilder() {
+        }
+
+        public LoginUserBuilder userId(Long userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public LoginUserBuilder username(String username) {
+            Assert.notNull(username, "username cannot be null");
+            this.username = username;
+            return this;
+        }
+
+        public LoginUserBuilder nickname(String nickname) {
+            this.nickname = nickname;
+            return this;
+        }
+
+        public LoginUserBuilder subject(String subject) {
+            this.subject = subject;
+            return this;
+        }
+
+        public LoginUserBuilder subjectId(Long subjectId) {
+            this.subjectId = subjectId;
+            return this;
+        }
+
+        /**
+         * Populates the roles. This method is a shortcut for calling
+         * {@link #authorities(String...)}, but automatically prefixes each entry with
+         * "ROLE_". This means the following:
+         *
+         * <code>
+         *     builder.roles("USER","ADMIN");
+         * </code>
+         *
+         * is equivalent to
+         *
+         * <code>
+         *     builder.authorities("ROLE_USER","ROLE_ADMIN");
+         * </code>
+         *
+         * <p>
+         * This attribute is required, but can also be populated with
+         * {@link #authorities(String...)}.
+         * </p>
+         * @param roles the roles for this user (i.e. USER, ADMIN, etc). Cannot be null,
+         * contain null values or start with "ROLE_"
+         * @return the {@link User.UserBuilder} for method chaining (i.e. to populate
+         * additional attributes for this user)
+         */
+        public LoginUserBuilder roles(String... roles) {
+            List<GrantedAuthority> authorities = new ArrayList<>(roles.length);
+            for (String role : roles) {
+                Assert.isTrue(!role.startsWith("ROLE_"),
+                        () -> role + " cannot start with ROLE_ (it is automatically added)");
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+            }
+            return authorities(authorities);
+        }
+
+        public LoginUserBuilder authorities(GrantedAuthority... authorities) {
+            return authorities(Arrays.asList(authorities));
+        }
+
+        /**
+         * Populates the authorities. This attribute is required.
+         * @param authorities the authorities for this user. Cannot be null, or contain
+         * null values
+         * @return the {@link User.UserBuilder} for method chaining (i.e. to populate
+         * additional attributes for this user)
+         * @see #roles(String...)
+         */
+        public LoginUserBuilder authorities(Collection<? extends GrantedAuthority> authorities) {
+            this.authorities = new ArrayList<>(authorities);
+            return this;
+        }
+
+        public LoginUserBuilder authorities(String... authorities) {
+            return authorities(AuthorityUtils.createAuthorityList(authorities));
+        }
+
+        public LoginUserBuilder accountLocked(boolean accountLocked) {
+            this.accountLocked = accountLocked;
+            return this;
+        }
+
+        public LoginUserDTO2 build() {
+            return new LoginUserDTO2(userId, username, nickname, subject, subjectId, authorities, !accountLocked);
+        }
+
     }
 }

@@ -26,8 +26,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
+import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.interfaces.RSAPrivateKey;
@@ -74,18 +74,14 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .csrf((csrf) -> csrf.ignoringAntMatchers("/token"))
                 .httpBasic(Customizer.withDefaults())
-//                .oauth2ResourceServer((a) -> a.jwt().jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
-                                .and()
-                                .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
-                                .accessDeniedHandler(new AccessDeniedHandlerImpl())
-                                .and()
-                                .addFilterAfter(new BearerTokenAuthenticationAfterFilter(), BearerTokenAuthenticationFilter.class)
-                        )
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                                .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
                 )
+                .addFilterBefore(new JwtBearerTokenAuthenticationFilter(jwtDecoder()), BearerTokenAuthenticationFilter.class)
                 .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .logout((logout) -> logout.logoutSuccessHandler(new LogoutSuccessHandlerImpl()));
+
         return http.build();
     }
 

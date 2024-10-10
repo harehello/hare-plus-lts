@@ -5,7 +5,6 @@ import org.hare.common.domain.OptionResponse;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -19,6 +18,8 @@ public final class SysConstants {
      * 用户信息
      */
     public static final String USER = "user";
+
+    public static final String LOGIN_USER_PREFIX = "login:user:";
     /**
      * 用户默认密码
      */
