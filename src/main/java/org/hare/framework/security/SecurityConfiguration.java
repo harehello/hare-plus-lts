@@ -6,15 +6,18 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import org.hare.core.sys.service.SysLoginService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,9 +28,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.interfaces.RSAPrivateKey;
@@ -39,7 +42,6 @@ import java.security.interfaces.RSAPublicKey;
  * @author hare
  */
 @Configuration
-@EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfiguration {
 
@@ -56,13 +58,10 @@ public class SecurityConfiguration {
 
     private AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver;
 
-    /**
-     * exceptionHandling.authenticationEntryPoint 指定的认证异常处理只能处理抛出的相关异常，
-     * 过滤器 {@link BearerTokenAuthenticationFilter#authenticationEntryPoint} 中指定的异常处理是 {@link BearerTokenAuthenticationEntryPoint}
-     * @param http
-     * @return
-     * @throws Exception
-     */
+    @Lazy
+    @Autowired
+    private SysLoginService loginService;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -72,15 +71,16 @@ public class SecurityConfiguration {
                 )
                 // 不能不设置或设置为disable，设置默认会按照WebMvcConfigurer的规则生效
                 .cors(Customizer.withDefaults())
-                .csrf((csrf) -> csrf.ignoringAntMatchers("/token"))
+                .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                                 .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
                 )
-                .addFilterBefore(new JwtBearerTokenAuthenticationFilter(jwtDecoder()), BearerTokenAuthenticationFilter.class)
-                .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .logout((logout) -> logout.logoutSuccessHandler(new LogoutSuccessHandlerImpl()));
+                .addFilterBefore(new JwtBearerTokenAuthenticationFilter(jwtDecoder(), loginService),
+                        LogoutFilter.class)
+                .logout((logout) -> logout.logoutSuccessHandler(new LogoutSuccessHandlerImpl(loginService)));
 
         return http.build();
     }
