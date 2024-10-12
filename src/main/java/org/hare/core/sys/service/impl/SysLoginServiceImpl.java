@@ -1,5 +1,6 @@
 package org.hare.core.sys.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.constant.Constants;
@@ -17,8 +18,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
-import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -29,7 +31,7 @@ import java.util.Collections;
 @RequiredArgsConstructor
 @Service
 public class SysLoginServiceImpl implements SysLoginService {
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final SysUserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtBuilder jwtBuilder;
@@ -50,22 +52,45 @@ public class SysLoginServiceImpl implements SysLoginService {
             // 验证密码
             Assert.isTrue(passwordEncoder.matches(password, sysUser.getPassword()), "密码错误");
         } catch (Exception e) {
-            logger.error(e.toString());
+            logger.error("登录异常：{}", e.toString());
             throw new BaseException(SysConstants.LOGIN_ERROR_MSG);
         }
         cacheLoginUser(LoginUserDTO.withSysUser(sysUser).build());
-        return jwtBuilder.build(sysUser.getUsername(), Collections.singletonList(sysUser.getRole()));
+        return jwtBuilder.build(sysUser.getUsername());
     }
 
     @Override
     public LoginUserDTO cacheLoginUser(LoginUserDTO dto) {
         try {
             final String value = new ObjectMapper().writeValueAsString(dto);
-            redisTemplate.opsForValue().set(SysConstants.LOGIN_USER_PREFIX + dto.getUsername(), value);
+            redisTemplate.opsForValue().set(SysConstants.LOGIN_USER_PREFIX + dto.getUsername(), value,
+                    jwtBuilder.getExpireTime(), TimeUnit.SECONDS);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("缓存登录用户异常：{}", e.toString());
+            throw new BaseException("缓存登录用户异常：" + e);
         }
 
+        return dto;
+    }
+
+    @Override
+    public void removeLoginUserByUsername(String username) {
+        redisTemplate.delete(SysConstants.LOGIN_USER_PREFIX + username);
+    }
+
+    @Override
+    public LoginUserDTO getLoginUserByUsername(String username) {
+        final String data = redisTemplate.opsForValue().get(SysConstants.LOGIN_USER_PREFIX + username);
+        LoginUserDTO dto = null;
+
+        try {
+            if (StringUtils.hasText(data)) {
+                dto = new ObjectMapper().readValue(data, LoginUserDTO.class);
+            }
+        } catch (JsonProcessingException e) {
+            logger.error("登录用户Json转换异常：{}", e.toString());
+            throw new BaseException("登录用户Json转换异常：" + e);
+        }
         return dto;
     }
 
