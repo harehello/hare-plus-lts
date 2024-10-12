@@ -47,8 +47,8 @@ spring:
 jwt:
   private.key: classpath:key/private.key
   public.key: classpath:key/public.key
-  # 10小时
-  expire-time: 360000
+  # 30分钟
+  expire-time: 1800
 
 mybatis-plus:
   configuration:
