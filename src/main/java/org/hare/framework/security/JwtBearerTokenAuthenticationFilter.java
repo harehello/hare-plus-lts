@@ -1,9 +1,11 @@
 package org.hare.framework.security;
 
+import org.hare.core.sys.dto.LoginUserDTO;
+import org.hare.core.sys.service.SysLoginService;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -27,6 +29,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * JWT令牌身份验证筛选器
@@ -48,9 +51,11 @@ public class JwtBearerTokenAuthenticationFilter extends OncePerRequestFilter {
     };
 
     private final JwtDecoder jwtDecoder;
+    private final SysLoginService loginService;
 
-    public JwtBearerTokenAuthenticationFilter(JwtDecoder jwtDecoder) {
+    public JwtBearerTokenAuthenticationFilter(JwtDecoder jwtDecoder, SysLoginService loginService) {
         this.jwtDecoder = jwtDecoder;
+        this.loginService = loginService;
     }
 
     /**
@@ -85,17 +90,16 @@ public class JwtBearerTokenAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             Jwt jwt = getJwt(authenticationRequest);
-            JwtAuthenticationToken jwtToken  = new JwtAuthenticationToken(jwt, AuthorityUtils.createAuthorityList("sys:user:list"));
+
+            final LoginUserDTO loginUserDTO = loginService.getLoginUserByUsername(jwt.getSubject());
+
+            authentication(loginUserDTO);
+
+            JwtAuthenticationToken jwtToken  = new JwtAuthenticationToken(jwt, loginUserDTO.getAuthorities());
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(jwtToken);
             SecurityContextHolder.setContext(context);
-
-            if ("admin".equals(context.getAuthentication().getName())) {
-                authenticationEntryPoint.commence(request, response, new InvalidBearerTokenException("Invalid"));
-                SecurityContextHolder.clearContext();
-                return;
-            }
 
             filterChain.doFilter(request, response);
         } catch (AuthenticationException failed) {
@@ -105,6 +109,11 @@ public class JwtBearerTokenAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * get Jwt
+     * @param bearer
+     * @return
+     */
     private Jwt getJwt(BearerTokenAuthenticationToken bearer) {
         try {
             return this.jwtDecoder.decode(bearer.getToken());
@@ -114,6 +123,23 @@ public class JwtBearerTokenAuthenticationFilter extends OncePerRequestFilter {
         } catch (JwtException failed) {
             throw new AuthenticationServiceException(failed.getMessage(), failed);
         }
+    }
+
+    /**
+     * authentication the logined user and refresh the login cache
+     * @param dto
+     */
+    private void authentication(LoginUserDTO dto) {
+
+        if (Objects.isNull(dto)) {
+            throw new InvalidBearerTokenException("the login user was invalid");
+        }
+        if (!dto.isAccountNonLocked()) {
+            throw new LockedException("the login user was locked");
+        }
+        // 刷新缓存
+        loginService.cacheLoginUser(dto);
+
     }
 
 }
