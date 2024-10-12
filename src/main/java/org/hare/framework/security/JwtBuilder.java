@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
+ * Jwt 生成器
  * @author wang cheng
  */
 @Component
@@ -62,6 +63,24 @@ public class JwtBuilder {
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
+    /**
+     * 根据角色构建jwt令牌，authorities要使用 " "分割，参考 {@link JwtGrantedAuthoritiesConverter#getAuthorities}
+     *
+     * @param username    用户名
+     * @return jwt令牌
+     */
+    public String build(String username) {
+
+        Instant now = Instant.now();
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .subject(username)
+                .build();
+
+        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
 
     /**
      * 从令牌中获取数据声明
@@ -81,5 +100,9 @@ public class JwtBuilder {
      */
     public String getSubject(String token) {
         return jwtDecoder.decode(token).getSubject();
+    }
+
+    public Long getExpireTime() {
+        return expireTime;
     }
 }
