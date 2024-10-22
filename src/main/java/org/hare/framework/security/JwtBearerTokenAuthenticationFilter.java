@@ -15,7 +15,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
@@ -87,7 +86,6 @@ public class JwtBearerTokenAuthenticationFilter extends OncePerRequestFilter {
 
         BearerTokenAuthenticationToken authenticationRequest = new BearerTokenAuthenticationToken(token);
         authenticationRequest.setDetails(this.authenticationDetailsSource.buildDetails(request));
-
         try {
             Jwt jwt = getJwt(authenticationRequest);
 
@@ -95,10 +93,9 @@ public class JwtBearerTokenAuthenticationFilter extends OncePerRequestFilter {
 
             authentication(loginUserDTO);
 
-            JwtAuthenticationToken jwtToken  = new JwtAuthenticationToken(jwt, loginUserDTO.getAuthorities());
-
+            final JwtBearerAuthenticationToken authenticationToken = new JwtBearerAuthenticationToken(jwt, loginUserDTO);
             SecurityContext context = SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(jwtToken);
+            context.setAuthentication(authenticationToken);
             SecurityContextHolder.setContext(context);
 
             filterChain.doFilter(request, response);
