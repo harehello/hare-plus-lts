@@ -8,7 +8,10 @@ import org.hare.core.sys.dto.SysUserPasswordBodyDTO;
 import org.hare.core.sys.dto.SysUserQueryDTO;
 import org.hare.core.sys.model.SysMenuDO;
 import org.hare.core.sys.model.SysUserDO;
-import org.hare.core.sys.service.*;
+import org.hare.core.sys.service.SysMenuService;
+import org.hare.core.sys.service.SysUserService;
+import org.hare.core.sys.service.SysUserSubjectService;
+import org.hare.framework.security.JwtBearerAuthenticationToken;
 import org.hare.framework.web.domain.R;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -141,8 +144,8 @@ public class SysUserController extends BaseController {
      * @return
      */
     @GetMapping("/menu")
-    public R menu(Authentication authentication) {
-        List<SysMenuDO> list = menuService.findMenuByUserId(0L);
+    public R menu(JwtBearerAuthenticationToken authentication) {
+        List<SysMenuDO> list = menuService.findMenuByUserId(authentication.getUserId());
         return R.success(menuService.bulidTree(list));
     }
 
