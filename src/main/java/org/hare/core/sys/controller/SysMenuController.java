@@ -3,11 +3,11 @@ package org.hare.core.sys.controller;
 import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.component.BaseController;
-import org.hare.common.domain.QueryRequest;
 import org.hare.core.sys.model.SysMenuDO;
 import org.hare.core.sys.service.SysMenuService;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +32,7 @@ public class SysMenuController extends BaseController {
      * @param form
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:menu:create')")
     @PostMapping
     public R create(@Validated @RequestBody SysMenuDO form) {
         service.create(form);
@@ -43,6 +44,7 @@ public class SysMenuController extends BaseController {
      * @param form
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:menu:update')")
     @PutMapping
     public R update(@Validated @RequestBody SysMenuDO form) {
         service.create(form);
@@ -54,6 +56,7 @@ public class SysMenuController extends BaseController {
      * @param id
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:menu:delete')")
     @DeleteMapping("/{id}")
     public R delete(@PathVariable Long id) {
         service.deleteById(id);
@@ -65,6 +68,7 @@ public class SysMenuController extends BaseController {
      * @param ids
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:menu:delete')")
     @DeleteMapping
     public R delete(@RequestBody Long[] ids) {
         service.deleteAllById(Arrays.asList(ids));

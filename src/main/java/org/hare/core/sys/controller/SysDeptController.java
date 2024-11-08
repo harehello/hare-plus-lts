@@ -9,6 +9,7 @@ import org.hare.core.sys.service.SysDeptService;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -33,6 +34,7 @@ public class SysDeptController extends BaseController {
      * @param form
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dept:create')")
     @PostMapping
     public R create(@Validated @RequestBody SysDeptDO form) {
         service.save(form);
@@ -44,6 +46,7 @@ public class SysDeptController extends BaseController {
      * @param form
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dept:update')")
     @PutMapping
     public R update(@Validated @RequestBody SysDeptDO form) {
         service.save(form);
@@ -55,6 +58,7 @@ public class SysDeptController extends BaseController {
      * @param id
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dept:delete')")
     @DeleteMapping("/{id}")
     public R delete(@PathVariable Long id) {
         service.deleteById(id);
@@ -66,6 +70,7 @@ public class SysDeptController extends BaseController {
      * @param ids
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dept:delete')")
     @DeleteMapping
     public R delete(@RequestBody Long[] ids) {
         service.deleteAllById(Arrays.asList(ids));
@@ -77,6 +82,7 @@ public class SysDeptController extends BaseController {
      * @param query
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dept:list')")
     @GetMapping("/page")
     public R page(QueryRequest query) {
         Specification<SysDeptDO> specification = new HareSpecification<SysDeptDO>().asc("seq");
@@ -88,6 +94,7 @@ public class SysDeptController extends BaseController {
      * 详情
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dept:list')")
     @GetMapping("/{id}")
     public R info(@PathVariable Long id) {
         SysDeptDO entity = service.findById(id);

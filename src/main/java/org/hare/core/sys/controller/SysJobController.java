@@ -8,6 +8,7 @@ import org.hare.core.sys.model.SysJobDO;
 import org.hare.core.sys.service.SysJobService;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,7 @@ public class SysJobController extends BaseController {
      * @param request
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:job:create')")
     @PostMapping
     public R create(@Validated @RequestBody SysJobDTO request) {
         service.save(SysJobDTO.convert(request));
@@ -41,6 +43,7 @@ public class SysJobController extends BaseController {
      * @param request
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:job:update')")
     @PutMapping
     public R update(@Validated @RequestBody SysJobDTO request) {
         service.save(SysJobDTO.convert(request));
@@ -52,6 +55,7 @@ public class SysJobController extends BaseController {
      * @param id
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:job:delete')")
     @DeleteMapping("/{id}")
     public R delete(@PathVariable Long id) {
         service.deleteById(id);
@@ -63,6 +67,7 @@ public class SysJobController extends BaseController {
      * @param ids
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:job:delete')")
     @DeleteMapping
     public R delete(@RequestBody Long[] ids) {
         service.deleteAllById(Arrays.asList(ids));
@@ -74,6 +79,7 @@ public class SysJobController extends BaseController {
      * @param query
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:job:list')")
     @GetMapping("/page")
     public R page(SysJobQuery query) {
         Page<SysJobDO> page = service.findAll(service.specification(query), query.getPageable());
@@ -85,6 +91,7 @@ public class SysJobController extends BaseController {
      * @param query
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:job:list')")
     @GetMapping("/list")
     public R list(SysJobQuery query) {
         List<SysJobDO> list = service.findAll(service.specification(query));
@@ -95,6 +102,7 @@ public class SysJobController extends BaseController {
      * 详情
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:job:list')")
     @GetMapping("/{id}")
     public R info(@PathVariable Long id) {
         SysJobDO entity = service.findById(id);

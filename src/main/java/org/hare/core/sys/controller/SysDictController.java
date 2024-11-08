@@ -10,6 +10,7 @@ import org.hare.core.sys.vo.SysDictVO;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ public class SysDictController extends BaseController {
      * @param form
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dict:create')")
     @PostMapping
     public R create(@Validated @RequestBody SysDictDO form) {
         service.save(form);
@@ -43,6 +45,7 @@ public class SysDictController extends BaseController {
      * @param form
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dict:update')")
     @PutMapping
     public R update(@Validated @RequestBody SysDictDO form) {
         service.save(form);
@@ -54,6 +57,7 @@ public class SysDictController extends BaseController {
      * @param id
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dict:delete')")
     @DeleteMapping("/{id}")
     public R delete(@PathVariable Long id) {
         service.deleteById(id);
@@ -65,6 +69,7 @@ public class SysDictController extends BaseController {
      * @param ids
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dict:delete')")
     @DeleteMapping
     public R delete(@RequestBody Long[] ids) {
         service.deleteAllById(Arrays.asList(ids));
@@ -76,6 +81,7 @@ public class SysDictController extends BaseController {
      * @param query
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dict:list')")
     @GetMapping("/page")
     public R page(QueryRequest query, @RequestParam(value = "name", required = false) String name) {
         Specification<SysDictDO> specification = new HareSpecification<SysDictDO>()
@@ -89,6 +95,7 @@ public class SysDictController extends BaseController {
      * 列表
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dict:list')")
     @GetMapping("/list")
     public R list() {
         List<SysDictVO> all = service.findVo();

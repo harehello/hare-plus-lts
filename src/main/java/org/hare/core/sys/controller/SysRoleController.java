@@ -3,7 +3,6 @@ package org.hare.core.sys.controller;
 import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.component.BaseController;
-import org.hare.common.domain.QueryRequest;
 import org.hare.core.sys.dto.SysRoleDTO;
 import org.hare.core.sys.dto.SysRoleQuery;
 import org.hare.core.sys.model.SysRoleDO;
@@ -12,6 +11,7 @@ import org.hare.core.sys.vo.SysRoleVO;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +35,7 @@ public class SysRoleController extends BaseController {
      * @param request
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:role:create')")
     @PostMapping
     public R create(@Validated @RequestBody SysRoleDTO request) {
         service.save(request);
@@ -44,6 +45,7 @@ public class SysRoleController extends BaseController {
     /**
      * 修改
      */
+    @PreAuthorize("hasAuthority('sys:role:update')")
     @PutMapping
     public R update(@Validated @RequestBody SysRoleDTO request) {
         service.save(request);
@@ -53,6 +55,7 @@ public class SysRoleController extends BaseController {
     /**
      * 查询角色拥有操作权限
      */
+    @PreAuthorize("hasAuthority('sys:role:list')")
     @GetMapping("/menu/{roleId}")
     public R getMenu(@PathVariable Long roleId) {
         return R.success(service.getMenuIds(roleId));
@@ -61,6 +64,7 @@ public class SysRoleController extends BaseController {
     /**
      * 修改操作权限
      */
+    @PreAuthorize("hasAuthority('sys:role:update')")
     @PutMapping("/menu")
     public R menu(@Validated @RequestBody SysRoleDTO request) {
         service.updateMenu(request);
@@ -70,6 +74,7 @@ public class SysRoleController extends BaseController {
     /**
      * 查询角色拥有数据权限
      */
+    @PreAuthorize("hasAuthority('sys:role:list')")
     @GetMapping("/dept/{roleId}")
     public R getDept(@PathVariable Long roleId) {
         return R.success(service.getDeptIds(roleId));
@@ -78,6 +83,7 @@ public class SysRoleController extends BaseController {
     /**
      * 修改数据权限
      */
+    @PreAuthorize("hasAuthority('sys:role:update')")
     @PutMapping("/dept")
     public R dept(@Validated @RequestBody SysRoleDTO request) {
         service.updateDept(request);
@@ -89,6 +95,7 @@ public class SysRoleController extends BaseController {
      * @param id
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:role:delete')")
     @DeleteMapping("/{id}")
     public R delete(@PathVariable Long id) {
         service.deleteById(id);
@@ -100,6 +107,7 @@ public class SysRoleController extends BaseController {
      * @param ids
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:role:delete')")
     @DeleteMapping
     public R delete(@RequestBody Long[] ids) {
         service.deleteAllById(Arrays.asList(ids));
@@ -111,6 +119,7 @@ public class SysRoleController extends BaseController {
      * @param query
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:role:list')")
     @GetMapping("/page")
     public R page(SysRoleQuery query) {
         Page<SysRoleDO> page = service.findAll(specification(query), query.getPageable());
@@ -122,6 +131,7 @@ public class SysRoleController extends BaseController {
      * @param query
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:role:list')")
     @GetMapping("/list")
     public R list(SysRoleQuery query) {
         List<SysRoleDO> list = service.findAll(specification(query));
@@ -138,6 +148,7 @@ public class SysRoleController extends BaseController {
      * 详情
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:role:list')")
     @GetMapping("/{id}")
     public R info(@PathVariable Long id) {
         SysRoleVO vo = service.findVoById(id);

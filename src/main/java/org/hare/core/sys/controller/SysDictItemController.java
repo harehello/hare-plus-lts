@@ -9,6 +9,7 @@ import org.hare.core.sys.service.SysDictItemService;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,7 @@ public class SysDictItemController extends BaseController {
      * @param form
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dict:create')")
     @PostMapping
     public R create(@Validated @RequestBody SysDictItemDO form) {
         service.save(form);
@@ -41,6 +43,7 @@ public class SysDictItemController extends BaseController {
      * @param form
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dict:update')")
     @PutMapping
     public R update(@Validated @RequestBody SysDictItemDO form) {
         service.save(form);
@@ -52,6 +55,7 @@ public class SysDictItemController extends BaseController {
      * @param id
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dict:delete')")
     @DeleteMapping("/{id}")
     public R delete(@PathVariable Long id) {
         service.deleteById(id);
@@ -63,6 +67,7 @@ public class SysDictItemController extends BaseController {
      * @param ids
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dict:delete')")
     @DeleteMapping
     public R delete(@RequestBody Long[] ids) {
         service.deleteAllById(Arrays.asList(ids));
@@ -74,6 +79,7 @@ public class SysDictItemController extends BaseController {
      * @param query
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dict:list')")
     @GetMapping("/page")
     public R page(QueryRequest query, @RequestParam("dictId") Long dictId) {
         Specification<SysDictItemDO> specification = new HareSpecification<SysDictItemDO>()
@@ -87,6 +93,7 @@ public class SysDictItemController extends BaseController {
      * 详情
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:dict:list')")
     @GetMapping("/{id}")
     public R info(@PathVariable Long id) {
         SysDictItemDO entity = service.findById(id);

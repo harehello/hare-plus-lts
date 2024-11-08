@@ -8,6 +8,7 @@ import org.hare.core.sys.model.SysEmployeeDO;
 import org.hare.core.sys.service.SysEmployeeService;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,7 @@ public class SysEmployeeController extends BaseController {
      * @param form
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:employee:create')")
     @PostMapping
     public R create( @RequestBody @Validated SysEmployeeDTO form) {
         service.create(form);
@@ -41,6 +43,7 @@ public class SysEmployeeController extends BaseController {
      * @param form
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:employee:update')")
     @PutMapping
     public R update(@Validated @RequestBody SysEmployeeDTO form) {
         service.update(form);
@@ -52,6 +55,7 @@ public class SysEmployeeController extends BaseController {
      * @param id
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:employee:delete')")
     @DeleteMapping("/{id}")
     public R delete(@PathVariable Long id) {
         service.deleteById(id);
@@ -63,6 +67,7 @@ public class SysEmployeeController extends BaseController {
      * @param ids
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:employee:delete')")
     @DeleteMapping
     public R delete(@RequestBody Long[] ids) {
         service.deleteAllById(Arrays.asList(ids));
@@ -74,6 +79,7 @@ public class SysEmployeeController extends BaseController {
      * @param query
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:employee:list')")
     @GetMapping("/page")
     public R page(SysEmployeeQuery query) {
         Page<SysEmployeeDO> page = service.findAll(service.specification(query), query.getPageable());
@@ -84,6 +90,7 @@ public class SysEmployeeController extends BaseController {
      * 详情
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:employee:list')")
     @GetMapping("/info/{id}")
     public R info(@PathVariable Long id) {
         SysEmployeeDTO dto = service.findDtoById(id);

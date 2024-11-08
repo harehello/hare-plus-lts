@@ -82,7 +82,7 @@ public class SysUserController extends BaseController {
      * @param query
      * @return
      */
-    @PreAuthorize("hasAuthority('sys:user:list1')")
+    @PreAuthorize("hasAuthority('sys:user:list')")
     @GetMapping("/page")
     public R page(SysUserQueryDTO query) {
         return R.success(service.findPage(service.specification(query), query.getPageable()));
@@ -94,6 +94,7 @@ public class SysUserController extends BaseController {
      * @param query
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:user:list')")
     @GetMapping("/list")
     public R list(SysUserQueryDTO query) {
         return R.success(service.findList(service.specification(query)));
@@ -103,6 +104,7 @@ public class SysUserController extends BaseController {
      * 重置密码
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:user:resetPassword')")
     @GetMapping("/resetPassword/{id}")
     public R resetPassword(@PathVariable Long id) {
         service.resetPassword(id);
@@ -134,6 +136,7 @@ public class SysUserController extends BaseController {
      * 根据用户ID获取用户信息
      * @return
      */
+    @PreAuthorize("hasAuthority('sys:user:list')")
     @GetMapping(value = "/info/{id}")
     public R getById(@PathVariable Long id) {
         return R.success(service.getById(id));
