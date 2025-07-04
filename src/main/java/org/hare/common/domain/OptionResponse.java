@@ -16,10 +16,22 @@ public class OptionResponse {
 
     public OptionResponse() {
     }
-    public OptionResponse(String value, String label) {
-        this.value = value;
+
+    public OptionResponse(String label, Object value) {
         this.label = label;
+        this.value = value;
         this.selected = Boolean.FALSE;
         this.disabled = Boolean.FALSE;
     }
+
+    public OptionResponse selected(){
+        this.selected = Boolean.TRUE;
+        return this;
+    }
+
+    public OptionResponse disabled(){
+        this.disabled = Boolean.TRUE;
+        return this;
+    }
+
 }
