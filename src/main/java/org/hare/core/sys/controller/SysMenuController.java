@@ -6,6 +6,8 @@ import org.hare.common.component.BaseController;
 import org.hare.core.sys.model.SysMenuDO;
 import org.hare.core.sys.service.SysMenuService;
 import org.hare.framework.web.domain.R;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
@@ -32,8 +34,9 @@ public class SysMenuController extends BaseController {
      * @param form
      * @return
      */
-    @PreAuthorize("hasAuthority('sys:menu:create')")
+    @PreAuthorize("hasAuthority('sys:menu:create') or 'admin' == authentication.name")
     @PostMapping
+    @CacheEvict(value = "menus", allEntries = true)
     public R create(@Validated @RequestBody SysMenuDO form) {
         service.create(form);
         return R.success();
@@ -44,8 +47,9 @@ public class SysMenuController extends BaseController {
      * @param form
      * @return
      */
-    @PreAuthorize("hasAuthority('sys:menu:update')")
+    @PreAuthorize("hasAuthority('sys:menu:update') or 'admin' == authentication.name")
     @PutMapping
+    @CacheEvict(value = "menus", allEntries = true)
     public R update(@Validated @RequestBody SysMenuDO form) {
         service.create(form);
         return R.success();
@@ -56,8 +60,9 @@ public class SysMenuController extends BaseController {
      * @param id
      * @return
      */
-    @PreAuthorize("hasAuthority('sys:menu:delete')")
+    @PreAuthorize("hasAuthority('sys:menu:delete') or 'admin' == authentication.name")
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "menus", allEntries = true)
     public R delete(@PathVariable Long id) {
         service.deleteById(id);
         return R.success();
@@ -68,8 +73,9 @@ public class SysMenuController extends BaseController {
      * @param ids
      * @return
      */
-    @PreAuthorize("hasAuthority('sys:menu:delete')")
+    @PreAuthorize("hasAuthority('sys:menu:delete') or 'admin' == authentication.name")
     @DeleteMapping
+    @CacheEvict(value = "menus", allEntries = true)
     public R delete(@RequestBody Long[] ids) {
         service.deleteAllById(Arrays.asList(ids));
         return R.success();
@@ -81,7 +87,7 @@ public class SysMenuController extends BaseController {
      * @return
      */
     @GetMapping("/tree")
-//    @Cacheable(value = "menu:tree", key = "#query.pageable.pageNumber")
+    @Cacheable(value = "menus", key = "'tree' + #type + #name")
     public R list(Integer type, String name) {
         Specification<SysMenuDO> specification = new HareSpecification<SysMenuDO>()
                 .like(StringUtils.hasText(name), "name", name)

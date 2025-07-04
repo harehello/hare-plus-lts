@@ -2,8 +2,8 @@ package org.hare.core.sys.service.impl;
 
 import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
-import org.hare.common.constant.StutesEmun;
-import org.hare.common.domain.LabelValueVO;
+import org.hare.common.constant.StateEmun;
+import org.hare.common.domain.OptionResponse;
 import org.hare.core.sys.constant.UserSubjectEmun;
 import org.hare.core.sys.dto.SysEmployeeDTO;
 import org.hare.core.sys.dto.SysUserDTO;
@@ -136,11 +136,11 @@ public class SysEmployeeServiceImpl extends BaseServiceImpl<SysEmployeeDO, Long>
     }
 
     @Override
-    public List<LabelValueVO> option() {
+    public List<OptionResponse> option() {
         return findAll(new HareSpecification<SysEmployeeDO>()
-                .eq("status", StutesEmun.active.name()))
+                .eq("status", StateEmun.active.name()))
                 .stream()
-                .map(e -> new LabelValueVO(e.getName(), e.getId().toString()))
+                .map(e -> new OptionResponse(e.getName(), e.getId()))
                 .collect(Collectors.toList());
     }
 }

@@ -2,14 +2,17 @@ package org.hare.core.sys.dto;
 
 import lombok.Getter;
 import lombok.ToString;
+import org.hare.core.sys.model.SysDeptDO;
+import org.hare.core.sys.model.SysMenuDO;
 import org.hare.core.sys.model.SysUserDO;
+import org.hare.framework.security.CustomGrantedAuthority;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.util.Assert;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author wang cheng
@@ -50,7 +53,13 @@ public class LoginUserDTO {
     /**
      * 权限
      */
+    @Getter
     private Set<GrantedAuthority> authorities;
+    /**
+     * 数据权限
+     */
+    @Getter
+    private Set<DataScope> dataScopes;
 
     @Getter
     private boolean accountNonLocked;
@@ -66,7 +75,7 @@ public class LoginUserDTO {
     public LoginUserDTO() {
     }
 
-    public LoginUserDTO(Long userId, String username, String nickname, String subject, Long subjectId, Collection<? extends GrantedAuthority> authorities, boolean accountNonLocked) {
+    public LoginUserDTO(Long userId, String username, String nickname, String subject, Long subjectId, Collection<? extends GrantedAuthority> authorities, Collection<DataScope> dataScopes, boolean accountNonLocked) {
         this.userId = userId;
         this.username = username;
         this.nickname = nickname;
@@ -77,14 +86,11 @@ public class LoginUserDTO {
             authorities = AuthorityUtils.NO_AUTHORITIES;
         }
         this.authorities = Collections.unmodifiableSet(new LinkedHashSet<>(authorities));
+        this.dataScopes = Collections.unmodifiableSet(new LinkedHashSet<>(dataScopes));
     }
 
     public LoginUserDTO(Set<? extends GrantedAuthority> authorities) {
         this.authorities =  Collections.unmodifiableSet(authorities);
-    }
-
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
     }
 
     public static LoginUserBuilder withUsername(String username) {
@@ -101,7 +107,15 @@ public class LoginUserDTO {
                 .nickname(user.getNickname())
                 .subject(user.getSubject())
                 .subjectId(user.getSubjectId())
+                .authorities(user)
+                .dataScopes(user)
                 .accountLocked(false);
+    }
+
+    public static List<GrantedAuthority> createAuthorityList(List<String> authorities) {
+        return authorities.stream()
+                .map(CustomGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
 
     public static final class LoginUserBuilder {
@@ -133,6 +147,8 @@ public class LoginUserDTO {
         private Long subjectId;
 
         private List<GrantedAuthority> authorities;
+
+        private List<DataScope> dataScopes;;
 
         private boolean accountLocked;
 
@@ -169,36 +185,12 @@ public class LoginUserDTO {
             return this;
         }
 
-        /**
-         * Populates the roles. This method is a shortcut for calling
-         * {@link #authorities(String...)}, but automatically prefixes each entry with
-         * "ROLE_". This means the following:
-         *
-         * <code>
-         *     builder.roles("USER","ADMIN");
-         * </code>
-         *
-         * is equivalent to
-         *
-         * <code>
-         *     builder.authorities("ROLE_USER","ROLE_ADMIN");
-         * </code>
-         *
-         * <p>
-         * This attribute is required, but can also be populated with
-         * {@link #authorities(String...)}.
-         * </p>
-         * @param roles the roles for this user (i.e. USER, ADMIN, etc). Cannot be null,
-         * contain null values or start with "ROLE_"
-         * @return the {@link User.UserBuilder} for method chaining (i.e. to populate
-         * additional attributes for this user)
-         */
         public LoginUserBuilder roles(String... roles) {
             List<GrantedAuthority> authorities = new ArrayList<>(roles.length);
             for (String role : roles) {
                 Assert.isTrue(!role.startsWith("ROLE_"),
                         () -> role + " cannot start with ROLE_ (it is automatically added)");
-                authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+                authorities.add(new CustomGrantedAuthority("ROLE_" + role));
             }
             return authorities(authorities);
         }
@@ -220,8 +212,26 @@ public class LoginUserDTO {
             return this;
         }
 
-        public LoginUserBuilder authorities(String... authorities) {
-            return authorities(AuthorityUtils.createAuthorityList(authorities));
+        public LoginUserBuilder authorities(SysUserDO user) {
+            final List<String> permissions = user.getRoles()
+                    .stream()
+                    .flatMap(role -> role.getMenus().stream())
+                    .map(SysMenuDO::getPermissions)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+//            user.getRoles().forEach(r -> permissions.add("ROLE_" + r.getName()));
+
+            return authorities(createAuthorityList(permissions));
+        }
+
+        public LoginUserBuilder dataScopes(SysUserDO user) {
+            this.dataScopes = user.getRoles()
+                    .stream()
+                    .map(r -> new DataScope(r.getDataScope(),
+                            r.getDepts().stream().map(SysDeptDO::getId).collect(Collectors.toList())))
+                    .collect(Collectors.toList());
+            return this;
         }
 
         public LoginUserBuilder accountLocked(boolean accountLocked) {
@@ -230,8 +240,31 @@ public class LoginUserDTO {
         }
 
         public LoginUserDTO build() {
-            return new LoginUserDTO(userId, username, nickname, subject, subjectId, authorities, !accountLocked);
+            return new LoginUserDTO(userId, username, nickname, subject, subjectId, authorities, dataScopes, !accountLocked);
         }
+    }
+
+    public static class DataScope {
+        @Getter
+        private String name;
+        @Getter
+        private List<Long> addition;
+
+        public DataScope() {
+        }
+
+        public DataScope(String name, List<Long> addition) {
+            this.name = name;
+            this.addition = addition;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            DataScope dataScope = (DataScope) o;
+            return Objects.equals(name, dataScope.name);
+        }
+
     }
 
 }

@@ -35,7 +35,7 @@ public class SysRoleController extends BaseController {
      * @param request
      * @return
      */
-    @PreAuthorize("hasAuthority('sys:role:create')")
+    @PreAuthorize("hasAuthority('sys:role:create') or 'admin' == authentication.name")
     @PostMapping
     public R create(@Validated @RequestBody SysRoleDTO request) {
         service.save(request);
@@ -45,7 +45,7 @@ public class SysRoleController extends BaseController {
     /**
      * 修改
      */
-    @PreAuthorize("hasAuthority('sys:role:update')")
+    @PreAuthorize("hasAuthority('sys:role:update') or 'admin' == authentication.name")
     @PutMapping
     public R update(@Validated @RequestBody SysRoleDTO request) {
         service.save(request);
@@ -64,7 +64,7 @@ public class SysRoleController extends BaseController {
     /**
      * 修改操作权限
      */
-    @PreAuthorize("hasAuthority('sys:role:update')")
+    @PreAuthorize("hasAuthority('sys:role:update') or 'admin' == authentication.name")
     @PutMapping("/menu")
     public R menu(@Validated @RequestBody SysRoleDTO request) {
         service.updateMenu(request);
@@ -83,7 +83,7 @@ public class SysRoleController extends BaseController {
     /**
      * 修改数据权限
      */
-    @PreAuthorize("hasAuthority('sys:role:update')")
+    @PreAuthorize("hasAuthority('sys:role:update') or 'admin' == authentication.name")
     @PutMapping("/dept")
     public R dept(@Validated @RequestBody SysRoleDTO request) {
         service.updateDept(request);
@@ -92,10 +92,11 @@ public class SysRoleController extends BaseController {
 
     /**
      * 删除
+     * 管理员角色不可删除（id：1）
      * @param id
      * @return
      */
-    @PreAuthorize("hasAuthority('sys:role:delete')")
+    @PreAuthorize("(hasAuthority('sys:role:delete') or 'admin' == authentication.name) and 1 != #id")
     @DeleteMapping("/{id}")
     public R delete(@PathVariable Long id) {
         service.deleteById(id);

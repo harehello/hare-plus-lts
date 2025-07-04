@@ -3,9 +3,10 @@ package org.hare.core.sys.service.impl;
 import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.constant.Constants;
-import org.hare.common.constant.StutesEmun;
+import org.hare.common.constant.StateEmun;
 import org.hare.core.sys.constant.SysConstants;
 import org.hare.core.sys.dto.SysUserDTO;
+import org.hare.core.sys.model.SysMenuDO;
 import org.hare.core.sys.model.SysRoleDO;
 import org.hare.core.sys.model.SysUserDO;
 import org.hare.core.sys.service.SysRoleService;
@@ -76,9 +77,21 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
      * @param username
      * @return
      */
+    @Transactional(readOnly = true)
     @Override
     public SysUserDO findByUsername(String username) {
-        return findOne(new HareSpecification<SysUserDO>().eq("username", username));
+        final SysUserDO userDO = findOne(new HareSpecification<SysUserDO>().eq("username", username));
+
+        if (Objects.isNull(userDO)) {
+            return null;
+        }
+        // 获取角色菜单、数据权限
+        userDO.getRoles().forEach(role -> {
+            final Set<SysMenuDO> menus = role.getMenus();
+            menus.forEach(menu -> {});
+            role.getDepts().forEach(dept -> {});
+        });
+        return userDO;
     }
 
     /**
@@ -140,7 +153,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
         assertUsernameUnique(target.getUsername());
 
         target.setPassword(encodePassword(getDefaultPassword()));
-        target.setStatus(StutesEmun.active.name());
+        target.setStatus(StateEmun.active.name());
 
         // 赋值角色
         setRoles(target, userDTO.getRoleIds());

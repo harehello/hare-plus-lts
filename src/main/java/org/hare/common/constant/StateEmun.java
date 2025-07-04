@@ -3,7 +3,7 @@ package org.hare.common.constant;
 /**
  * @author wang cheng
  */
-public enum StutesEmun {
+public enum StateEmun {
     /**
      * 正常
      */
