@@ -10,7 +10,6 @@ import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +23,6 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @RestController
-@Controller
 @RequestMapping("/api/v1/sys/dept")
 public class SysDeptController extends BaseController {
     private final SysDeptService service;

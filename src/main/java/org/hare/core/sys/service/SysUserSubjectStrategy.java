@@ -1,6 +1,6 @@
 package org.hare.core.sys.service;
 
-import org.hare.common.domain.LabelValueVO;
+import org.hare.common.domain.OptionResponse;
 
 import java.util.List;
 
@@ -23,5 +23,5 @@ public interface SysUserSubjectStrategy {
     /**
      * 主体选项
      */
-    List<LabelValueVO> option();
+    List<OptionResponse> option();
 }

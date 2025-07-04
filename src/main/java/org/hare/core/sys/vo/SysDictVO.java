@@ -2,7 +2,7 @@ package org.hare.core.sys.vo;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.hare.common.domain.LabelValueVO;
+import org.hare.common.domain.OptionResponse;
 
 import java.util.List;
 
@@ -19,5 +19,5 @@ public class SysDictVO {
     /** 编码 **/
     private String code;
 
-    private List<LabelValueVO> items;
+    private List<OptionResponse> items;
 }

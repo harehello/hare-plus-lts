@@ -1,6 +1,6 @@
 package org.hare.core.sys.service.impl;
 
-import org.hare.common.domain.LabelValueVO;
+import org.hare.common.domain.OptionResponse;
 import org.hare.core.sys.model.SysDictDO;
 import org.hare.core.sys.service.SysDictService;
 import org.hare.core.sys.vo.SysDictVO;
@@ -23,8 +23,8 @@ public class SysDictServiceImpl extends BaseServiceImpl<SysDictDO, Long> impleme
             SysDictVO dictVO = new SysDictVO();
             dictVO.setCode(d.getCode());
             dictVO.setName(d.getName());
-            List<LabelValueVO> labelValueVOS = d.getItems().stream()
-                    .map(item -> new LabelValueVO(item.getValue(), item.getValue())).collect(Collectors.toList());
+            List<OptionResponse> labelValueVOS = d.getItems().stream()
+                    .map(item -> new OptionResponse(item.getValue(), item.getValue())).collect(Collectors.toList());
             dictVO.setItems(labelValueVOS);
             return dictVO;
         }).collect(Collectors.toList());

@@ -1,6 +1,5 @@
 package org.hare.core.sys.constant;
 
-import org.hare.common.constant.Constants;
 import org.hare.common.domain.OptionResponse;
 
 import java.util.Arrays;
@@ -100,13 +99,13 @@ public final class SysConstants {
             return name;
         }
 
-        public static Map<Constants.Role, String> getMap() {
-            return Arrays.stream(Constants.Role.values())
-                    .collect(Collectors.toMap(v -> v, Constants.Role::getName));
+        public static Map<Role, String> getMap() {
+            return Arrays.stream(Role.values())
+                    .collect(Collectors.toMap(v -> v, Role::getName));
         }
 
         public static Set<OptionResponse> getList() {
-            return Arrays.stream(Constants.Role.values())
+            return Arrays.stream(Role.values())
                     .map(v -> new OptionResponse(v.name(), v.getName()))
                     .collect(Collectors.toSet());
         }
