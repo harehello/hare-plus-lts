@@ -13,6 +13,9 @@ public class R extends HashMap<String, Object> {
     public static final String MSG = "msg";
     public static final String DATA = "data";
 
+    public R() {
+    }
+
     public R(int code, String msg, Object data) {
         put(CODE, code);
         put(MSG, msg);
