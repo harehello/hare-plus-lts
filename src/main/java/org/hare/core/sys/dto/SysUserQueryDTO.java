@@ -2,7 +2,7 @@ package org.hare.core.sys.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.hare.common.domain.QueryRequest;
+import org.hare.common.domain.BaseQueryRequest;
 
 /**
  * 用户查询
@@ -10,7 +10,7 @@ import org.hare.common.domain.QueryRequest;
  */
 @Getter
 @Setter
-public class SysUserQueryDTO extends QueryRequest {
+public class SysUserQueryDTO extends BaseQueryRequest {
     private static final long serialVersionUID = -5290437477286920379L;
 
     private String nickname;

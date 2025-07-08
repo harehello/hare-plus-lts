@@ -5,7 +5,6 @@ import org.hare.core.sys.constant.SysConstants;
 import org.hare.core.sys.dto.SysUserDTO;
 import org.hare.core.sys.dto.SysUserQueryDTO;
 import org.hare.core.sys.model.SysUserDO;
-import org.hare.framework.jpa.BaseService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -17,7 +16,7 @@ import java.util.List;
  * 用户
  * @author wangcheng
  */
-public interface SysUserService extends BaseService<SysUserDO, Long> {
+public interface SysUserService {
 
      /**
      * 构建查询条件Specification
@@ -117,4 +116,16 @@ public interface SysUserService extends BaseService<SysUserDO, Long> {
      * 重置密码
      */
     void resetPassword(Long id);
+
+    /**
+     * 删除
+     * @param id
+     */
+    void deleteById(Long id);
+
+    /**
+     * 批量删除
+     * @param ids
+     */
+    void deleteAllById(List<Long> ids);
 }

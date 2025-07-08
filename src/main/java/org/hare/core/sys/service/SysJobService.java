@@ -1,27 +1,27 @@
 package org.hare.core.sys.service;
 
-import com.hare.jpa.HareSpecification;
+import org.hare.common.component.CrudService;
+import org.hare.core.sys.dto.SysJobDTO;
 import org.hare.core.sys.dto.SysJobQuery;
 import org.hare.core.sys.model.SysJobDO;
-import org.hare.framework.jpa.BaseService;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.util.StringUtils;
 
 /**
  * @author wangcheng
  */
-public interface SysJobService extends BaseService<SysJobDO, Long> {
+public interface SysJobService extends CrudService<SysJobDO, Long, SysJobQuery> {
 
     /**
-     * 构建查询条件
-     * @param query
+     * 创建
+     *
+     * @param request
      * @return
      */
-    default Specification<SysJobDO> specification(SysJobQuery query) {
-
-        return new HareSpecification<SysJobDO> ()
-                .like(StringUtils.hasText(query.getName()), "name", query.getName())
-                .eq(StringUtils.hasText(query.getStatus()), "status", query.getStatus())
-                .asc("seq");
-    }
+    SysJobDO create(SysJobDTO request);
+    /**
+     * 修改
+     *
+     * @param request
+     * @return
+     */
+    SysJobDO update(SysJobDTO request);
 }

@@ -1,16 +1,13 @@
 package org.hare.core.sys.controller;
 
-import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.component.BaseController;
-import org.hare.common.domain.QueryRequest;
+import org.hare.core.sys.dto.SysDeptQuery;
 import org.hare.core.sys.model.SysDeptDO;
 import org.hare.core.sys.service.SysDeptService;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +32,7 @@ public class SysDeptController extends BaseController {
     @PreAuthorize("hasAuthority('sys:dept:create')")
     @PostMapping
     public R create(@Validated @RequestBody SysDeptDO form) {
-        service.save(form);
+        service.create(form);
         return R.success();
     }
 
@@ -47,7 +44,7 @@ public class SysDeptController extends BaseController {
     @PreAuthorize("hasAuthority('sys:dept:update')")
     @PutMapping
     public R update(@Validated @RequestBody SysDeptDO form) {
-        service.save(form);
+        service.update(form);
         return R.success();
     }
 
@@ -82,9 +79,8 @@ public class SysDeptController extends BaseController {
      */
     @PreAuthorize("hasAuthority('sys:dept:list')")
     @GetMapping("/page")
-    public R page(QueryRequest query) {
-        Specification<SysDeptDO> specification = new HareSpecification<SysDeptDO>().asc("seq");
-        Page<SysDeptDO> page = service.findAll(specification, query.getPageable());
+    public R page(SysDeptQuery query) {
+        Page<SysDeptDO> page = service.findPage(query);
         return R.success(page);
     }
 
@@ -101,15 +97,12 @@ public class SysDeptController extends BaseController {
 
     /**
      * 树形结构
-     * @param name
+     * @param query
      * @return
      */
     @GetMapping("/tree")
-    public R list(@RequestParam(required = false) String name) {
-        Specification<SysDeptDO> specification = new HareSpecification<SysDeptDO>()
-                .like(StringUtils.hasText(name), "name", name)
-                .asc("seq");
-        List<SysDeptDO> list = service.findAll(specification);
+    public R list(SysDeptQuery query) {
+        List<SysDeptDO> list = service.findList(query);
         return R.success(service.bulidTree(list));
     }
 }

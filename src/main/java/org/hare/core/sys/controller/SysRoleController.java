@@ -1,6 +1,5 @@
 package org.hare.core.sys.controller;
 
-import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.component.BaseController;
 import org.hare.core.sys.dto.SysRoleDTO;
@@ -10,9 +9,7 @@ import org.hare.core.sys.service.SysRoleService;
 import org.hare.core.sys.vo.SysRoleVO;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -123,7 +120,7 @@ public class SysRoleController extends BaseController {
     @PreAuthorize("hasAuthority('sys:role:list')")
     @GetMapping("/page")
     public R page(SysRoleQuery query) {
-        Page<SysRoleDO> page = service.findAll(specification(query), query.getPageable());
+        Page<SysRoleDO> page = service.findPage(query);
         return R.success(page);
     }
 
@@ -135,14 +132,8 @@ public class SysRoleController extends BaseController {
     @PreAuthorize("hasAuthority('sys:role:list')")
     @GetMapping("/list")
     public R list(SysRoleQuery query) {
-        List<SysRoleDO> list = service.findAll(specification(query));
+        List<SysRoleDO> list = service.findList(query);
         return R.success(list);
-    }
-
-    private Specification<SysRoleDO> specification(SysRoleQuery query) {
-        return new HareSpecification<SysRoleDO>()
-                .like(StringUtils.hasText(query.getName()), "name", query.getName())
-                .asc("seq");
     }
 
     /**

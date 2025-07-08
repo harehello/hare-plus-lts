@@ -3,7 +3,6 @@ package org.hare.core.sys.service;
 import org.hare.core.sys.constant.SysConstants;
 import org.hare.core.sys.model.SysMenuDO;
 import org.hare.core.sys.vo.SysMenuVO;
-import org.hare.framework.jpa.BaseService;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
  * 菜单 服务
  * @author wangcheng
  */
-public interface SysMenuService extends BaseService<SysMenuDO, Long> {
+public interface SysMenuService {
 
     /**
      * 创建菜单
@@ -56,4 +55,20 @@ public interface SysMenuService extends BaseService<SysMenuDO, Long> {
      */
     List<SysMenuDO> findBtnByUserId(Long userId);
 
+    /**
+     * 删除菜单
+     * @param id
+     */
+    void deleteById(Long id);
+    /**
+     * 批量删除菜单
+     * @param ids
+     */
+    void deleteAllById(List<Long> ids);
+
+    /**
+     * 查询菜单
+     *
+     */
+    List<SysMenuDO> findList(Integer type, String name);
 }

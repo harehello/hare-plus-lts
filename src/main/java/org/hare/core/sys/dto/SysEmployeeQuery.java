@@ -3,7 +3,7 @@ package org.hare.core.sys.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
-import org.hare.common.domain.QueryRequest;
+import org.hare.common.domain.BaseQueryRequest;
 
 import java.util.Date;
 
@@ -13,7 +13,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
-public class SysEmployeeQuery extends QueryRequest {
+public class SysEmployeeQuery extends BaseQueryRequest {
 
     private static final long serialVersionUID = 156628584031183971L;
     /**

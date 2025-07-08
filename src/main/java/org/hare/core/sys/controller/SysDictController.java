@@ -1,17 +1,14 @@
 package org.hare.core.sys.controller;
 
-import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.component.BaseController;
-import org.hare.common.domain.QueryRequest;
+import org.hare.core.sys.dto.SysDictQuery;
 import org.hare.core.sys.model.SysDictDO;
 import org.hare.core.sys.service.SysDictService;
 import org.hare.core.sys.vo.SysDictVO;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +33,7 @@ public class SysDictController extends BaseController {
     @PreAuthorize("hasAuthority('sys:dict:create')")
     @PostMapping
     public R create(@Validated @RequestBody SysDictDO form) {
-        service.save(form);
+        service.create(form);
         return R.success();
     }
 
@@ -48,7 +45,7 @@ public class SysDictController extends BaseController {
     @PreAuthorize("hasAuthority('sys:dict:update')")
     @PutMapping
     public R update(@Validated @RequestBody SysDictDO form) {
-        service.save(form);
+        service.update(form);
         return R.success();
     }
 
@@ -83,11 +80,8 @@ public class SysDictController extends BaseController {
      */
     @PreAuthorize("hasAuthority('sys:dict:list')")
     @GetMapping("/page")
-    public R page(QueryRequest query, @RequestParam(value = "name", required = false) String name) {
-        Specification<SysDictDO> specification = new HareSpecification<SysDictDO>()
-                .eq(StringUtils.hasText(name), "name", name)
-                .asc("seq");
-        Page<SysDictDO> page = service.findAll(specification, query.getPageable());
+    public R page(SysDictQuery query, @RequestParam(value = "name", required = false) String name) {
+        Page<SysDictDO> page = service.findPage(query);
         return R.success(page);
     }
 

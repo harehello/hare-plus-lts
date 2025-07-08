@@ -34,7 +34,7 @@ public class SysJobController extends BaseController {
     @PreAuthorize("hasAuthority('sys:job:create')")
     @PostMapping
     public R create(@Validated @RequestBody SysJobDTO request) {
-        service.save(SysJobDTO.convert(request));
+        service.create(request);
         return R.success();
     }
 
@@ -46,7 +46,7 @@ public class SysJobController extends BaseController {
     @PreAuthorize("hasAuthority('sys:job:update')")
     @PutMapping
     public R update(@Validated @RequestBody SysJobDTO request) {
-        service.save(SysJobDTO.convert(request));
+        service.update(request);
         return R.success();
     }
 
@@ -82,7 +82,7 @@ public class SysJobController extends BaseController {
     @PreAuthorize("hasAuthority('sys:job:list')")
     @GetMapping("/page")
     public R page(SysJobQuery query) {
-        Page<SysJobDO> page = service.findAll(service.specification(query), query.getPageable());
+        Page<SysJobDO> page = service.findPage(query);
         return R.success(page);
     }
 
@@ -94,7 +94,7 @@ public class SysJobController extends BaseController {
     @PreAuthorize("hasAuthority('sys:job:list')")
     @GetMapping("/list")
     public R list(SysJobQuery query) {
-        List<SysJobDO> list = service.findAll(service.specification(query));
+        List<SysJobDO> list = service.findList(query);
         return R.success(list);
     }
 

@@ -82,7 +82,7 @@ public class SysEmployeeController extends BaseController {
     @PreAuthorize("hasAuthority('sys:employee:list')")
     @GetMapping("/page")
     public R page(SysEmployeeQuery query) {
-        Page<SysEmployeeDO> page = service.findAll(service.specification(query), query.getPageable());
+        Page<SysEmployeeDO> page = service.findPage(query);
         return R.success(page);
     }
 

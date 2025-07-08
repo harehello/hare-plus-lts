@@ -1,16 +1,18 @@
 package org.hare.core.sys.service;
 
+import org.hare.common.component.CrudService;
 import org.hare.core.sys.dto.SysRoleDTO;
+import org.hare.core.sys.dto.SysRoleQuery;
 import org.hare.core.sys.model.SysRoleDO;
 import org.hare.core.sys.vo.SysRoleVO;
-import org.hare.framework.jpa.BaseService;
 
+import java.util.List;
 import java.util.Set;
 
 /**
  * @author wangcheng
  */
-public interface SysRoleService extends BaseService<SysRoleDO, Long> {
+public interface SysRoleService extends CrudService<SysRoleDO, Long, SysRoleQuery> {
 
     /**
      * 根据id查询
@@ -58,4 +60,18 @@ public interface SysRoleService extends BaseService<SysRoleDO, Long> {
      * @return
      */
     Set<Long> getDeptIds(Long roleId);
+
+    /**
+     * 删除角色
+     *
+     * @param id
+     */
+    void deleteById(Long id);
+
+    /**
+     * 批量删除角色
+     *
+     * @param ids
+     */
+    void deleteAllById(List<Long> ids);
 }

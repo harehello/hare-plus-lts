@@ -1,14 +1,12 @@
 package org.hare.core.sys.controller;
 
-import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.component.BaseController;
-import org.hare.common.domain.QueryRequest;
+import org.hare.core.sys.dto.SysDictItemQuery;
 import org.hare.core.sys.model.SysDictItemDO;
 import org.hare.core.sys.service.SysDictItemService;
 import org.hare.framework.web.domain.R;
 import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +32,7 @@ public class SysDictItemController extends BaseController {
     @PreAuthorize("hasAuthority('sys:dict:create')")
     @PostMapping
     public R create(@Validated @RequestBody SysDictItemDO form) {
-        service.save(form);
+        service.create(form);
         return R.success();
     }
 
@@ -46,7 +44,7 @@ public class SysDictItemController extends BaseController {
     @PreAuthorize("hasAuthority('sys:dict:update')")
     @PutMapping
     public R update(@Validated @RequestBody SysDictItemDO form) {
-        service.save(form);
+        service.update(form);
         return R.success();
     }
 
@@ -81,11 +79,8 @@ public class SysDictItemController extends BaseController {
      */
     @PreAuthorize("hasAuthority('sys:dict:list')")
     @GetMapping("/page")
-    public R page(QueryRequest query, @RequestParam("dictId") Long dictId) {
-        Specification<SysDictItemDO> specification = new HareSpecification<SysDictItemDO>()
-                .eq("dict", dictId)
-                .asc("seq");
-        Page<SysDictItemDO> page = service.findAll(specification, query.getPageable());
+    public R page(SysDictItemQuery query) {
+        Page<SysDictItemDO> page = service.findPage(query);
         return R.success(page);
     }
 

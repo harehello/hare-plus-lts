@@ -6,13 +6,17 @@ import org.hare.common.constant.StateEmun;
 import org.hare.common.domain.OptionResponse;
 import org.hare.core.sys.constant.UserSubjectEmun;
 import org.hare.core.sys.dto.SysEmployeeDTO;
+import org.hare.core.sys.dto.SysEmployeeQuery;
 import org.hare.core.sys.dto.SysUserDTO;
 import org.hare.core.sys.model.*;
+import org.hare.core.sys.repository.SysEmployeeRepository;
 import org.hare.core.sys.service.*;
-import org.hare.framework.jpa.BaseServiceImpl;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -24,11 +28,21 @@ import java.util.stream.Collectors;
  */
 @RequiredArgsConstructor
 @Service
-public class SysEmployeeServiceImpl extends BaseServiceImpl<SysEmployeeDO, Long> implements SysEmployeeService, SysUserSubjectStrategy {
+public class SysEmployeeServiceImpl implements SysEmployeeService, SysUserSubjectStrategy {
 
     private final SysDeptService deptService;
     private final SysJobService postService;
     private final SysUserService userService;
+    private final SysEmployeeRepository repository;
+
+    @Override
+    public Specification<SysEmployeeDO> specification(SysEmployeeQuery query) {
+        return new HareSpecification<SysEmployeeDO>()
+                .eq(Objects.nonNull(query.getDeptId()), "dept", query.getDeptId())
+                .like(StringUtils.hasText(query.getName()), "name", query.getName())
+                .eq(StringUtils.hasText(query.getStatus()), "status", query.getStatus())
+                .asc("id");
+    }
 
     /**
      * 创建员工，自动创建用户
@@ -49,7 +63,7 @@ public class SysEmployeeServiceImpl extends BaseServiceImpl<SysEmployeeDO, Long>
         final SysJobDO jobDO = postService.findById(jobId);
         target.setJob(jobDO);
         // 保存员工信息
-        super.save(target);
+        repository.save(target);
 
         // 自动创建用户
         request.setId(target.getId());
@@ -92,7 +106,7 @@ public class SysEmployeeServiceImpl extends BaseServiceImpl<SysEmployeeDO, Long>
         target.setJob(jobDO);
 
         // 保存员工信息
-        super.save(target);
+        repository.save(target);
 
         // 修改用户
         final SysUserDTO userDTO = SysEmployeeDTO.convertToUser(request);
@@ -137,10 +151,48 @@ public class SysEmployeeServiceImpl extends BaseServiceImpl<SysEmployeeDO, Long>
 
     @Override
     public List<OptionResponse> option() {
-        return findAll(new HareSpecification<SysEmployeeDO>()
+        return repository.findAll(new HareSpecification<SysEmployeeDO>()
                 .eq("status", StateEmun.active.name()))
                 .stream()
                 .map(e -> new OptionResponse(e.getName(), e.getId()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public SysEmployeeDO create(SysEmployeeDO entity) {
+        return repository.save(entity);
+    }
+
+    @Override
+    public SysEmployeeDO update(SysEmployeeDO entity) {
+        return repository.save(entity);
+    }
+
+    @Override
+    public SysEmployeeDO findById(Long aLong) {
+        return repository.findById(aLong).orElse( null);
+    }
+
+    @Override
+    public void deleteById(Long aLong) {
+
+        repository.deleteById(aLong);
+    }
+
+    @Override
+    public void deleteAllById(List<Long> longs) {
+
+        repository.deleteAllById(longs);
+    }
+
+    @Override
+    public Page<SysEmployeeDO> findPage(SysEmployeeQuery query) {
+        final Specification<SysEmployeeDO> specification = specification(query);
+        return repository.findAll(specification, query.getPageable());
+    }
+
+    @Override
+    public List<SysEmployeeDO> findList(SysEmployeeQuery query) {
+        return repository.findAll(specification(query));
     }
 }

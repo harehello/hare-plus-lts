@@ -9,10 +9,10 @@ import org.hare.core.sys.dto.SysUserDTO;
 import org.hare.core.sys.model.SysMenuDO;
 import org.hare.core.sys.model.SysRoleDO;
 import org.hare.core.sys.model.SysUserDO;
-import org.hare.core.sys.service.SysRoleService;
+import org.hare.core.sys.repository.SysRoleRepository;
+import org.hare.core.sys.repository.SysUserRepository;
 import org.hare.core.sys.service.SysUserService;
 import org.hare.framework.exception.BaseException;
-import org.hare.framework.jpa.BaseServiceImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -30,10 +30,11 @@ import java.util.stream.Collectors;
  */
 @RequiredArgsConstructor
 @Service
-public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> implements SysUserService {
+public class SysUserServiceImpl implements SysUserService {
 
-    private final SysRoleService roleService;
+    private final SysRoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SysUserRepository repository;
 
     /**
      * 查询用户列表转换为DTO
@@ -43,14 +44,14 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
     @Override
     public Page<SysUserDTO> findPage(Specification<SysUserDO> specification, Pageable pageable) {
 
-        final Page<SysUserDO> all = findAll(specification, pageable);
+        final Page<SysUserDO> all = repository.findAll(specification, pageable);
 
         return all.map(SysUserDTO::convert);
     }
 
     @Override
     public List<SysUserDTO> findList(Specification<SysUserDO> specification) {
-        final List<SysUserDO> all = findAll(specification);
+        final List<SysUserDO> all = repository.findAll(specification);
 
         return all.stream().map(SysUserDTO::convert).collect(Collectors.toList());
     }
@@ -80,12 +81,14 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
     @Transactional(readOnly = true)
     @Override
     public SysUserDO findByUsername(String username) {
-        final SysUserDO userDO = findOne(new HareSpecification<SysUserDO>().eq("username", username));
+        final Optional<SysUserDO> optional = repository.findOne(new HareSpecification<SysUserDO>()
+                .eq("username", username));
 
-        if (Objects.isNull(userDO)) {
+        if (!optional.isPresent()) {
             return null;
         }
-        // 获取角色菜单、数据权限
+        final SysUserDO userDO = optional.get();
+                // 获取角色菜单、数据权限
         userDO.getRoles().forEach(role -> {
             final Set<SysMenuDO> menus = role.getMenus();
             menus.forEach(menu -> {});
@@ -107,7 +110,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
     @Override
     public boolean isUsernameUnique(String username, Long userId) {
 
-        final long count = count(new HareSpecification<SysUserDO>()
+        final long count = repository.count(new HareSpecification<SysUserDO>()
                 .eq("username", username)
                 .ne(Objects.nonNull(userId), "id", userId));
 
@@ -133,9 +136,8 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
      * @param id
      * @return
      */
-    @Override
     public SysUserDO findById(Long id) {
-        return super.findById(id);
+        return repository.findById(id).orElse( null);
     }
 
     /**
@@ -158,7 +160,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
         // 赋值角色
         setRoles(target, userDTO.getRoleIds());
         // 保存用户（同时保存角色信息）并返回
-        return super.save(target);
+        return repository.save(target);
     }
 
     /**
@@ -198,7 +200,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
         // 赋值角色
         setRoles(userDO, userDTO.getRoleIds());
 
-        return super.save(userDO);
+        return repository.save(userDO);
     }
 
     /**
@@ -218,7 +220,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
             throw new BaseException(SysConstants.USER_RAW_PASSWORD_ERROR_MSG);
         }
         userDO.setPassword(encodePassword(password));
-        super.save(userDO);
+        repository.save(userDO);
     }
 
     /**
@@ -231,7 +233,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
         assertUserAlter(id);
         SysUserDO userDO = findById(id);
         userDO.setPassword(encodePassword(getDefaultPassword()));
-        super.save(userDO);
+        repository.save(userDO);
     }
 
     /**
@@ -258,7 +260,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
     private void setRoles(SysUserDO userDO, List<Long> roleIds) {
         if (!roleIds.isEmpty()) {
             // 获取角色信息
-            List<SysRoleDO> roles = roleService.findAllById(roleIds);
+            List<SysRoleDO> roles = roleRepository.findAllById(roleIds);
             // 角色名称
             String role = roles.stream().map(SysRoleDO::getName).collect(Collectors.joining(Constants.CSV));
             userDO.setRoles(new LinkedHashSet<>(roles));
@@ -286,7 +288,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDO, Long> impleme
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void deleteAllById(Iterable<? extends Long> ids) {
+    public void deleteAllById(List<Long> ids) {
         ids.forEach(this::assertUserAlter);
         repository.deleteAllById(ids);
     }
