@@ -2,15 +2,18 @@ package org.hare.core.sys.service.impl;
 
 import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
+import org.hare.common.constant.DeleteEmun;
 import org.hare.common.constant.StateEmun;
 import org.hare.common.domain.OptionResponse;
 import org.hare.core.sys.constant.UserSubjectEmun;
 import org.hare.core.sys.dto.SysEmployeeDTO;
 import org.hare.core.sys.dto.SysEmployeeQuery;
 import org.hare.core.sys.dto.SysUserDTO;
+import org.hare.core.sys.dto.SysUserQuery;
 import org.hare.core.sys.model.*;
 import org.hare.core.sys.repository.SysEmployeeRepository;
 import org.hare.core.sys.service.*;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,7 @@ public class SysEmployeeServiceImpl implements SysEmployeeService, SysUserSubjec
                 .eq(Objects.nonNull(query.getDeptId()), "dept", query.getDeptId())
                 .like(StringUtils.hasText(query.getName()), "name", query.getName())
                 .eq(StringUtils.hasText(query.getStatus()), "status", query.getStatus())
+                .eq("deleted", DeleteEmun.NOT_DELETED.getCode())
                 .asc("id");
     }
 
@@ -152,7 +156,8 @@ public class SysEmployeeServiceImpl implements SysEmployeeService, SysUserSubjec
     @Override
     public List<OptionResponse> option() {
         return repository.findAll(new HareSpecification<SysEmployeeDO>()
-                .eq("status", StateEmun.active.name()))
+                .eq("status", StateEmun.active.name())
+                .eq("deleted", DeleteEmun.NOT_DELETED.getCode()))
                 .stream()
                 .map(e -> new OptionResponse(e.getName(), e.getId()))
                 .collect(Collectors.toList());
@@ -173,16 +178,32 @@ public class SysEmployeeServiceImpl implements SysEmployeeService, SysUserSubjec
         return repository.findById(aLong).orElse( null);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public void deleteById(Long aLong) {
+    public void deleteById(Long id) {
 
-        repository.deleteById(aLong);
+        SysEmployeeDO target = repository.findById(id).orElseThrow(() -> new EmptyResultDataAccessException(String.format("No %s entity with id %s exists!", "SysUserDO", id), 1));
+
+        // 删除员工账号
+        final SysUserQuery userQuery = new SysUserQuery();
+        userQuery.setSubject(code());
+        userQuery.setSubjectId(id);
+        final List<SysUserDTO> users = userService.findList(userQuery);
+        final List<Long> userIds = users.stream().map(SysUserDTO::getId).collect(Collectors.toList());
+        userService.deleteAllById(userIds);
+
+        // 删除员工信息
+        target.setDeleted(DeleteEmun.DELETED.getCode());
+        repository.save(target);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteAllById(List<Long> longs) {
 
-        repository.deleteAllById(longs);
+        for (Long aLong : longs) {
+            deleteById(aLong);
+        }
     }
 
     @Override

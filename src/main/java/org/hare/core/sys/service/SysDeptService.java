@@ -2,9 +2,11 @@ package org.hare.core.sys.service;
 
 import com.hare.jpa.HareSpecification;
 import org.hare.common.component.CrudService;
+import org.hare.common.constant.DeleteEmun;
 import org.hare.core.sys.dto.SysDeptQuery;
 import org.hare.core.sys.model.SysDeptDO;
 import org.hare.core.sys.vo.SysDeptVO;
+import org.hare.framework.aop.DataIsolator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
@@ -56,6 +58,7 @@ public interface SysDeptService extends CrudService<SysDeptDO, Long, SysDeptQuer
     default Specification<SysDeptDO> specification(SysDeptQuery query) {
         return new HareSpecification<SysDeptDO>()
                 .like(StringUtils.hasText(query.getName()), "name", query.getName())
+                .eq("deleted", DeleteEmun.NOT_DELETED.getCode())
                 .asc("seq");
     }
 

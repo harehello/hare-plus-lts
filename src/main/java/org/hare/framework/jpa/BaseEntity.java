@@ -24,6 +24,8 @@ import java.time.LocalDateTime;
 @EntityListeners(BaseEntityListener.class)
 public abstract class BaseEntity implements Serializable {
 
+    private static final long serialVersionUID = 3920224120269042080L;
+
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     protected Long id;

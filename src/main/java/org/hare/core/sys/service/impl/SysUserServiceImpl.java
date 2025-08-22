@@ -3,9 +3,11 @@ package org.hare.core.sys.service.impl;
 import com.hare.jpa.HareSpecification;
 import lombok.RequiredArgsConstructor;
 import org.hare.common.constant.Constants;
+import org.hare.common.constant.DeleteEmun;
 import org.hare.common.constant.StateEmun;
 import org.hare.core.sys.constant.SysConstants;
 import org.hare.core.sys.dto.SysUserDTO;
+import org.hare.core.sys.dto.SysUserQuery;
 import org.hare.core.sys.model.SysMenuDO;
 import org.hare.core.sys.model.SysRoleDO;
 import org.hare.core.sys.model.SysUserDO;
@@ -13,9 +15,8 @@ import org.hare.core.sys.repository.SysRoleRepository;
 import org.hare.core.sys.repository.SysUserRepository;
 import org.hare.core.sys.service.SysUserService;
 import org.hare.framework.exception.BaseException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,20 +39,20 @@ public class SysUserServiceImpl implements SysUserService {
 
     /**
      * 查询用户列表转换为DTO
-     * @param specification 条件
+     * @param query 条件
      * @return 分页数据
      */
     @Override
-    public Page<SysUserDTO> findPage(Specification<SysUserDO> specification, Pageable pageable) {
+    public Page<SysUserDTO> findPage(SysUserQuery query) {
 
-        final Page<SysUserDO> all = repository.findAll(specification, pageable);
+        final Page<SysUserDO> all = repository.findAll(specification(query), query.getPageable());
 
         return all.map(SysUserDTO::convert);
     }
 
     @Override
-    public List<SysUserDTO> findList(Specification<SysUserDO> specification) {
-        final List<SysUserDO> all = repository.findAll(specification);
+    public List<SysUserDTO> findList(SysUserQuery query) {
+        final List<SysUserDO> all = repository.findAll(specification(query));
 
         return all.stream().map(SysUserDTO::convert).collect(Collectors.toList());
     }
@@ -88,7 +89,8 @@ public class SysUserServiceImpl implements SysUserService {
             return null;
         }
         final SysUserDO userDO = optional.get();
-                // 获取角色菜单、数据权限
+
+        // 获取角色菜单、数据权限
         userDO.getRoles().forEach(role -> {
             final Set<SysMenuDO> menus = role.getMenus();
             menus.forEach(menu -> {});
@@ -102,13 +104,11 @@ public class SysUserServiceImpl implements SysUserService {
      * @param username 要检查的用户名
      * @return 如果用户名唯一返回true，否则返回false
      */
-    @Override
-    public boolean isUsernameUnique(String username) {
+    private boolean isUsernameUnique(String username) {
         return isUsernameUnique(username, null);
     }
 
-    @Override
-    public boolean isUsernameUnique(String username, Long userId) {
+    private boolean isUsernameUnique(String username, Long userId) {
 
         final long count = repository.count(new HareSpecification<SysUserDO>()
                 .eq("username", username)
@@ -117,15 +117,13 @@ public class SysUserServiceImpl implements SysUserService {
         return count > 0;
     }
 
-    @Override
-    public void assertUsernameUnique(String username) {
+    private void assertUsernameUnique(String username) {
         if (isUsernameUnique(username)) {
             throw new BaseException(SysConstants.USER_UNIQUE_ERROR_MSG);
         }
     }
 
-    @Override
-    public void assertUsernameUnique(String username, Long userId) {
+    private void assertUsernameUnique(String username, Long userId) {
         if (isUsernameUnique(username, userId)) {
             throw new BaseException(SysConstants.USER_UNIQUE_ERROR_MSG);
         }
@@ -156,26 +154,12 @@ public class SysUserServiceImpl implements SysUserService {
 
         target.setPassword(encodePassword(getDefaultPassword()));
         target.setStatus(StateEmun.active.name());
+        target.setDeleted(DeleteEmun.NOT_DELETED.getCode());
 
         // 赋值角色
         setRoles(target, userDTO.getRoleIds());
         // 保存用户（同时保存角色信息）并返回
         return repository.save(target);
-    }
-
-    /**
-     * 保存员工信息并生成账号
-     * @param bodyDTOs
-     * @return
-     */
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void create(List<SysUserDTO> bodyDTOs) {
-
-        for (SysUserDTO bodyDTO : bodyDTOs) {
-            create(bodyDTO);
-        }
-
     }
 
     /**
@@ -279,7 +263,11 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public void deleteById(Long id) {
         assertUserAlter(id);
-        repository.deleteById(id);
+
+        SysUserDO target = repository.findById(id).orElseThrow(() -> new EmptyResultDataAccessException(String.format("No %s entity with id %s exists!", "SysUserDO", id), 1));
+
+        target.setDeleted(DeleteEmun.DELETED.getCode());
+        repository.save(target);
     }
 
     /**
@@ -289,8 +277,9 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteAllById(List<Long> ids) {
-        ids.forEach(this::assertUserAlter);
-        repository.deleteAllById(ids);
+        for(Long id : ids) {
+            this.deleteById(id);
+        }
     }
 
     /**

@@ -1,7 +1,6 @@
 package org.hare.core.sys.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sun.istack.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -58,6 +57,11 @@ public class SysDeptDO extends BaseEntity {
      */
     @JsonIgnore
     private String fastId;
+
+    /**
+     * 删除标识：0-未删除 1-已删除
+     */
+    private Integer deleted = 0;
 
     public SysDeptDO(Long id) {
         this.id = id;

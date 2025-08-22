@@ -1,16 +1,17 @@
 package org.hare.core.sys.service;
 
 import com.hare.jpa.HareSpecification;
+import org.hare.common.constant.DeleteEmun;
 import org.hare.core.sys.constant.SysConstants;
 import org.hare.core.sys.dto.SysUserDTO;
-import org.hare.core.sys.dto.SysUserQueryDTO;
+import org.hare.core.sys.dto.SysUserQuery;
 import org.hare.core.sys.model.SysUserDO;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 用户
@@ -23,29 +24,31 @@ public interface SysUserService {
      * @param query 查询条件
      * @return Specification
      */
-     default Specification<SysUserDO> specification(SysUserQueryDTO query) {
+     default Specification<SysUserDO> specification(SysUserQuery query) {
         return new HareSpecification<SysUserDO>()
                 .like(StringUtils.hasText(query.getNickname()), "nickname", query.getNickname())
                 .eq(StringUtils.hasText(query.getSubject()),"subject", query.getSubject())
+                .eq(Objects.nonNull(query.getSubjectId()),"subjectId", query.getSubjectId())
                 .eq(StringUtils.hasText(query.getStatus()),"status", query.getStatus())
                 .like(StringUtils.hasText(query.getRole()),"role", query.getRole())
+                .eq("deleted", DeleteEmun.NOT_DELETED.getCode())
                 .ne("id", SysConstants.USER_SYSTEM_ID)
                 .desc("id");
     }
 
     /**
      * 查询用户列表转换为DTO
-     * @param specification 条件
+     * @param query 条件
      * @return 分页数据
      */
-    Page<SysUserDTO> findPage(Specification<SysUserDO> specification, Pageable pageable);
+    Page<SysUserDTO> findPage(SysUserQuery query);
 
     /**
      * 查询用户列表转换为DTO
-     * @param specification 条件
+     * @param query 条件
      * @return 列表数据
      */
-    List<SysUserDTO> findList(Specification<SysUserDO> specification);
+    List<SysUserDTO> findList(SysUserQuery query);
 
     /**
      * 查询用户转换为DTO
@@ -62,44 +65,11 @@ public interface SysUserService {
     SysUserDO findByUsername(String username);
 
     /**
-     * 断言用户唯一
-     * @param username 要检查的用户名
-     */
-    void assertUsernameUnique(String username);
-
-    /**
-     *
-     * @param username 要检查的用户名
-     * @param userId 当前用户的ID（如果修改用户时，忽略当前用户的用户名）
-     */
-    void assertUsernameUnique(String username, Long userId);
-
-    /**
-     *
-     * @param username 要检查的用户名
-     * @return 如果用户名唯一返回true，否则返回false
-     */
-    boolean isUsernameUnique(String username);
-    /**
-     *
-     * @param username 要检查的用户名
-     * @param userId 当前用户的ID（如果修改用户时，忽略当前用户的用户名）
-     * @return 如果用户名唯一返回true，否则返回false
-     */
-    boolean isUsernameUnique(String username, Long userId);
-
-    /**
      * 保存
      * @param bodyDTO
      * @return SysUserDO
      */
     SysUserDO create(SysUserDTO bodyDTO);
-
-    /**
-     * 保存
-     * @param bodyDTOs
-     */
-    void create(List<SysUserDTO> bodyDTOs);
 
     /**
      * 修改

@@ -1,14 +1,18 @@
 package org.hare.core.sys.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.hare.common.constant.DeleteEmun;
 import org.hare.core.sys.constant.SysConstants;
 import org.hare.core.sys.dto.SysDeptQuery;
 import org.hare.core.sys.model.SysDeptDO;
 import org.hare.core.sys.repository.SysDeptRepository;
 import org.hare.core.sys.service.SysDeptService;
+import org.hare.framework.aop.DataIsolator;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -45,14 +49,25 @@ public class SysDeptServiceImpl implements SysDeptService {
         return repository.findById(id).orElse(null);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteById(Long id) {
-        repository.deleteById(id);
+        SysDeptDO target = repository.findById(id).orElseThrow(() -> new EmptyResultDataAccessException(String.format("No %s entity with id %s exists!", "SysUserDO", id), 1));
+
+        target.setDeleted(DeleteEmun.DELETED.getCode());
+        repository.save(target);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteAllById(List<Long> ids) {
         repository.deleteAllById(ids);
+        for (Long id : ids) {
+            SysDeptDO target = repository.findById(id).orElseThrow(() -> new EmptyResultDataAccessException(String.format("No %s entity with id %s exists!", "SysUserDO", id), 1));
+
+            target.setDeleted(DeleteEmun.DELETED.getCode());
+            repository.save(target);
+        }
     }
 
     @Override
@@ -61,6 +76,7 @@ public class SysDeptServiceImpl implements SysDeptService {
         return repository.findAll(specification, query.getPageable());
     }
 
+    @DataIsolator
     @Override
     public List<SysDeptDO> findList(SysDeptQuery query) {
         Specification<SysDeptDO> specification = specification(query);

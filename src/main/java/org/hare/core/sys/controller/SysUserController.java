@@ -5,7 +5,7 @@ import org.hare.common.component.BaseController;
 import org.hare.core.sys.dto.LoginUserResponse;
 import org.hare.core.sys.dto.SysUserDTO;
 import org.hare.core.sys.dto.SysUserPasswordBodyDTO;
-import org.hare.core.sys.dto.SysUserQueryDTO;
+import org.hare.core.sys.dto.SysUserQuery;
 import org.hare.core.sys.model.SysMenuDO;
 import org.hare.core.sys.model.SysUserDO;
 import org.hare.core.sys.service.SysMenuService;
@@ -84,9 +84,9 @@ public class SysUserController extends BaseController {
      */
     @PreAuthorize("hasAuthority('sys:user:list')")
     @GetMapping("/page")
-    public R page(SysUserQueryDTO query) {
-        return R.success(service.findPage(service.specification(query), query.getPageable()));
+    public R page(SysUserQuery query) {
 
+        return R.success(service.findPage(query));
     }
 
     /**
@@ -96,8 +96,8 @@ public class SysUserController extends BaseController {
      */
     @PreAuthorize("hasAuthority('sys:user:list')")
     @GetMapping("/list")
-    public R list(SysUserQueryDTO query) {
-        return R.success(service.findList(service.specification(query)));
+    public R list(SysUserQuery query) {
+        return R.success(service.findList(query));
     }
 
     /**

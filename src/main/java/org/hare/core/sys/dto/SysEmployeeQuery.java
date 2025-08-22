@@ -15,7 +15,6 @@ import java.util.Date;
 @Setter
 public class SysEmployeeQuery extends BaseQueryRequest {
 
-    private static final long serialVersionUID = 156628584031183971L;
     /**
      * 姓名
      */

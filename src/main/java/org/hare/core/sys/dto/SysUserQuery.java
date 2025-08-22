@@ -10,11 +10,11 @@ import org.hare.common.domain.BaseQueryRequest;
  */
 @Getter
 @Setter
-public class SysUserQueryDTO extends BaseQueryRequest {
-    private static final long serialVersionUID = -5290437477286920379L;
+public class SysUserQuery extends BaseQueryRequest {
 
     private String nickname;
     private String subject;
+    private Long subjectId;
     private String status;
     private String role;
 }

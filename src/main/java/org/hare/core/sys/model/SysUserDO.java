@@ -3,7 +3,6 @@ package org.hare.core.sys.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.hare.framework.jpa.BaseEntity;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -21,7 +20,11 @@ import java.util.Set;
 @DynamicInsert
 @DynamicUpdate
 @Entity
-@Table(name = "sys_user")
+@Table(name = "sys_user", indexes =  {
+        @Index(name = "idx_username", columnList = "username"),
+        @Index(name = "idx_nickname", columnList = "nickname"),
+        @Index(name = "idx_subject_subject_id", columnList = "subject,subjectId"),
+})
 public class SysUserDO extends BaseEntity {
 
     private static final long serialVersionUID = 1246825374847350472L;
@@ -43,7 +46,7 @@ public class SysUserDO extends BaseEntity {
     private String nickname;
 
     /**
-     * 状态：正常、限制、删除
+     * 状态：正常、限制
      */
     @Column(length = 10)
     private String status;
@@ -74,4 +77,9 @@ public class SysUserDO extends BaseEntity {
      * 主体ID
      */
     private Long subjectId;
+
+    /**
+     * 删除标识：0-未删除 1-已删除
+     */
+    private Integer deleted = 0;
 }

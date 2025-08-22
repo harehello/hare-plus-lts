@@ -74,4 +74,9 @@ public class SysEmployeeDO extends BaseEntity {
      */
     private String remark;
 
+    /**
+     * 删除标识
+     */
+    private Integer deleted = 0;
+
 }
